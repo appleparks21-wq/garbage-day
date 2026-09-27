@@ -1,0 +1,13 @@
+{
+  "name": "garbage-day",
+  "version": "1.0.0",
+  "description": "Garbage Day: a two-player block puzzle battle you can play from a link.",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
