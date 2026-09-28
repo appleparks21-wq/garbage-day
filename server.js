@@ -16,13 +16,23 @@ const MAX_ROOMS = 2000;          // rooms alive at once
 const MAX_PER_ROOM = 40;         // people in one room
 const MAX_STATE = 8192;          // bytes of state one player may hold
 const MAX_FRAME = 32 * 1024;     // biggest message accepted
+function stamp() { return new Date().toISOString().slice(11, 19); }
+function shortUa(req) { const u = String(req.headers['user-agent'] || ''); const m = u.match(/\(([^)]*)\)/); const b = u.match(/(Chrome|CriOS|Firefox|FxiOS|Version)\/[\d.]+/); return ((m ? m[1] : '') + ' ' + (b ? b[0] : '')).slice(0, 90); }
 
 /* ---------------- web pages ---------------- */
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://localhost');
   if (url.pathname === '/health') { res.writeHead(200, { 'content-type': 'text/plain' }); res.end('ok'); return; }
+  // phones report what they see here, so problems show up in the Render logs
+  if (url.pathname === '/log' && req.method === 'POST') {
+    let body = '';
+    req.on('data', c => { if (body.length < 2000) body += c; });
+    req.on('end', () => { console.log(stamp(), 'phone', body.replace(/\s+/g, ' ').slice(0, 600)); res.writeHead(204); res.end(); });
+    return;
+  }
   // the lobby lives at "/", private games at "/r/<code>"; both get the same page
   if (url.pathname === '/' || url.pathname === '/index.html' || /^\/r\/[a-z0-9-]{1,24}\/?$/i.test(url.pathname)) {
+    console.log(stamp(), 'page', url.pathname, shortUa(req));
     res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-cache', 'x-content-type-options': 'nosniff' });
     res.end(PAGE);
     return;
@@ -77,6 +87,7 @@ function join(sock, code, id) {
   sock.onClose = () => {
     if (members.get(id) !== me) return; // replaced by a reconnect
     members.delete(id);
+    console.log(stamp(), 'leave', code, id, 'players:' + members.size);
     broadcast(code, id, { t: 'left', peer: id });
     if (!members.size) rooms.delete(code);
   };
@@ -99,6 +110,7 @@ server.on('upgrade', (req, socket) => {
   socket.write('HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: ' + accept + '\r\n\r\n');
   socket.setNoDelay(true);
   join(wrap(socket), code, id);
+  console.log(stamp(), 'join', code, id, 'players:' + rooms.get(code).size, shortUa(req));
 });
 
 function frame(opcode, payload) {

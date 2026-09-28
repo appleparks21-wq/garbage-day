@@ -8,6 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Garbage Day">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{touch-action:manipulation}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<script>(function(){function s(k,m){try{var d=JSON.stringify({k:k,m:String(m).slice(0,300),p:location.pathname,ua:navigator.userAgent});if(navigator.sendBeacon){navigator.sendBeacon('/log',d);}else{var x=new XMLHttpRequest();x.open('POST','/log');x.send(d);}}catch(e){}}window.addEventListener('error',function(e){s('error',(e.message||'')+' @'+(e.lineno||0)+':'+(e.colno||0));});window.addEventListener('unhandledrejection',function(e){s('reject',e.reason&&e.reason.message||e.reason);});window.__gdLog=s;})();</script>
 </head>
 <body>
 <title>Garbage Day</title>
@@ -805,6 +806,7 @@ function startCpu() {
   beginCountdown();
 }
 function startOnline(go) {
+  if (window.__gdLog) window.__gdLog('start', go.mid);
   S.usedMids.add(go.mid);
   S.vsCpu = false; S.cpu = null; S.mid = go.mid; S.opp = go.pl.find(p => p !== NET.me) || null;
   S.netSt = 'play'; S.lastAtk = 0; S.myAtk = {}; S.seen = Date.now(); S.lastPr = {};
@@ -853,6 +855,7 @@ function search() {
   if (NET.avail !== 'yes' || !NET.me) return;
   audioInit();
   S.mode = 'search'; S.netSt = 'wait'; S.vsCpu = false; readySince = Date.now(); lobbySig = ''; renderLobby();
+  if (window.__gdLog) window.__gdLog('search', ROOM);
 }
 function cancelSearch() { if (S.mode !== 'search') return; S.mode = 'lobby'; S.netSt = 'lobby'; lobbySig = ''; renderLobby(); }
 
@@ -977,6 +980,7 @@ function renderLobby() {
   const rows = others.map(p => ({ name: cleanName(p.presence.nm) || 'Player', st: String(p.presence.st || ''), other: p.isMe, away: p.presence.vis === false }));
   const sig = JSON.stringify([rows, msgT, btn, NET.avail, !!NET.me, searching, linked]);
   if (sig === lobbySig) return; lobbySig = sig;
+  if (window.__gdLog) window.__gdLog('lobby', msgT + ' | ' + btn + ' | others:' + others.length);
   const ob = $('#onlineBtn');
   ob.textContent = btn; ob.disabled = !(NET.avail === 'yes' && NET.me); ob.classList.toggle('searching', searching);
   $('#netMsg').textContent = msgT;
@@ -1189,6 +1193,7 @@ drawLogo();
 renderLobby();
 requestAnimationFrame(frame);
 initNet();
+if (window.__gdLog) window.__gdLog('loaded', 'room=' + ROOM + ' hosted=' + HOSTED);
 })();
 </script>
 
