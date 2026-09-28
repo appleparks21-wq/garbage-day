@@ -910,7 +910,7 @@ let hb = 0;
 setInterval(() => { hb = (hb + 1) % 1000; }, 2000);
 function presenceState() {
   const g = S.game, inR = !!(S.mid && g && !S.vsCpu);
-  return { v: 4, nm: S.name, st: S.netSt, mid: S.vsCpu ? null : S.mid, go: S.go, b: inR ? g.encode() : null, sc: inR ? g.score : 0, inc: inR ? g.pending() : 0, atk: S.vsCpu ? {} : S.myAtk, w: S.wins, de: S.myDe, hb };
+  return { v: 4, nm: S.name, st: S.netSt, mid: S.vsCpu ? null : S.mid, go: S.go, b: inR ? g.encode() : null, sc: inR ? g.score : 0, inc: inR ? g.pending() : 0, atk: S.vsCpu ? {} : S.myAtk, w: S.wins, de: S.myDe, vis: !document.hidden, hb };
 }
 const lastSent = {}; let lastFlush = 0;
 function flushPresence(now) {
@@ -923,7 +923,7 @@ function flushPresence(now) {
 setInterval(() => flushPresence(Date.now()), 110);
 let readyKey = '', readySince = 0;
 function netTick(now) {
-  if (!NET.room || !NET.me || S.mode !== 'search') return;
+  if (!NET.room || !NET.me || S.mode !== 'search' || document.hidden) return;
   const players = NET.peers.filter(p => p.kind === 'viewer' && p.presence && p.presence.v === 4 && !(typeof p.updatedAt === 'number' && now - p.updatedAt > 12000));
   let best = null;
   for (const p of players) {
@@ -932,7 +932,7 @@ function netTick(now) {
     if (!best || p.peer < best.peer) best = p;
   }
   if (best) { startOnline(best.presence.go); return; }
-  const ids = new Set(players.filter(p => !p.sameTab && p.presence.st === 'wait').map(p => p.peer)); ids.add(NET.me);
+  const ids = new Set(players.filter(p => !p.sameTab && p.presence.st === 'wait' && p.presence.vis !== false).map(p => p.peer)); ids.add(NET.me);
   const ready = [...ids].sort(), key = ready.join(',');
   if (key !== readyKey) { readyKey = key; readySince = now; }
   const pair = ready.slice(0, 2);
@@ -957,7 +957,8 @@ let lobbySig = '';
 function renderLobby() {
   const now = Date.now();
   const others = NET.peers.filter(p => p.kind === 'viewer' && !p.sameTab && p.presence && p.presence.v === 4 && !(typeof p.updatedAt === 'number' && now - p.updatedAt > 12000));
-  const waiting = others.filter(p => p.presence.st === 'wait');
+  const waiting = others.filter(p => p.presence.st === 'wait' && p.presence.vis !== false);
+  const away = others.filter(p => p.presence.vis === false);
   const searching = S.mode === 'search';
   const linked = !(NET.room && typeof NET.room.connected === 'function') || NET.room.connected();
   let msgT, btn;
@@ -965,7 +966,7 @@ function renderLobby() {
   else if (NET.avail === 'pending' || !NET.me) { msgT = 'Connecting…'; btn = 'Play online'; }
   else if (!linked) { msgT = 'Connecting to the game server… If nobody has played for a while it can take up to a minute to wake up.'; btn = searching ? 'Looking for a player… (tap to stop)' : 'Play online'; }
   else if (searching) {
-    msgT = waiting.length ? 'Starting…' : PRIVATE ? 'The game starts the moment they open your link.' : HOSTED ? 'Waiting for another player. To play someone you know, tap Play a friend.' : "Waiting for someone to join. When your friend opens this page and taps Play online, you'll start right away.";
+    msgT = waiting.length ? 'Starting…' : away.length ? (cleanName(away[0].presence.nm) || 'Your friend') + ' has the game in the background. It starts when they come back to it.' : PRIVATE ? 'The game starts the moment they open your link.' : HOSTED ? 'Waiting for another player. To play someone you know, tap Play a friend.' : "Waiting for someone to join. When your friend opens this page and taps Play online, you'll start right away.";
     btn = PRIVATE ? 'Waiting for your friend… (tap to stop)' : 'Looking for a player… (tap to stop)';
   }
   else if (waiting.length) { msgT = cleanName(waiting[0].presence.nm) + ' is waiting for you!'; btn = 'Play ' + (cleanName(waiting[0].presence.nm) || 'now'); }
@@ -973,7 +974,7 @@ function renderLobby() {
   else if (PRIVATE) { msgT = "Your friend isn't here yet. Send them the link above."; btn = 'Play online'; }
   else if (HOSTED) { msgT = 'Nobody else is waiting right now. Tap Play a friend to get a link you can text someone.'; btn = 'Play online'; }
   else { msgT = 'Nobody else is here right now. Send this page to a friend, then you both tap Play online.'; btn = 'Play online'; }
-  const rows = others.map(p => ({ name: cleanName(p.presence.nm) || 'Player', st: String(p.presence.st || ''), other: p.isMe }));
+  const rows = others.map(p => ({ name: cleanName(p.presence.nm) || 'Player', st: String(p.presence.st || ''), other: p.isMe, away: p.presence.vis === false }));
   const sig = JSON.stringify([rows, msgT, btn, NET.avail, !!NET.me, searching, linked]);
   if (sig === lobbySig) return; lobbySig = sig;
   const ob = $('#onlineBtn');
@@ -985,7 +986,8 @@ function renderLobby() {
     const n = document.createElement('span'); n.className = 'pn'; n.textContent = r.name; li.appendChild(n);
     if (r.other) { const y = document.createElement('span'); y.className = 'you'; y.textContent = 'your other tab'; li.appendChild(y); }
     const c = document.createElement('span');
-    if (r.st === 'wait') { c.className = 'chip wait'; c.textContent = 'Wants to play'; }
+    if (r.away) { c.className = 'chip'; c.textContent = 'Away'; }
+    else if (r.st === 'wait') { c.className = 'chip wait'; c.textContent = 'Wants to play'; }
     else if (r.st === 'play' || r.st === 'dead' || r.st === 'done') { c.className = 'chip play'; c.textContent = 'In a game'; }
     else { c.className = 'chip'; c.textContent = 'Here'; }
     li.appendChild(c); ul.appendChild(li);
@@ -1160,6 +1162,8 @@ function frame(t) {
 }
 let hiddenAt = 0;
 document.addEventListener('visibilitychange', () => {
+  // tell the other player right away whether this game is on screen
+  lastFlush = 0; flushPresence(Date.now());
   if (document.hidden) { hiddenAt = Date.now(); return; }
   if (!hiddenAt) return;
   const away = Date.now() - hiddenAt; hiddenAt = 0;
