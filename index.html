@@ -72,7 +72,7 @@ canvas{display:block}
 .scoreBox{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0}
 .score{font-family:var(--disp);font-weight:700;font-size:32px;line-height:1;font-variant-numeric:tabular-nums;text-shadow:0 3px 0 rgba(20,16,90,.55)}
 .comboSlot{min-height:24px;display:flex;align-items:center}
-.combo{display:inline-flex;align-items:center;gap:7px;font-family:var(--disp);font-weight:700;font-size:14px;color:#2a1a00;background:var(--gold);padding:2px 9px;border-radius:999px;box-shadow:0 3px 0 #b88a00;white-space:nowrap}
+.combo{display:inline-flex;align-items:center;gap:7px;font-family:var(--disp);font-weight:700;font-size:16px;color:#2a1a00;background:var(--gold);padding:2px 9px;border-radius:999px;box-shadow:0 3px 0 #b88a00;white-space:nowrap}
 .combo.hot{background:#ff9b30;box-shadow:0 3px 0 #b85c00}
 .combo.fire{background:#ff62b5;box-shadow:0 3px 0 #a3206a;color:#fff}
 .pips{display:inline-flex;gap:3px}
@@ -120,6 +120,19 @@ canvas{display:block}
 @keyframes praise{0%{opacity:0;transform:scale(.3) rotate(-6deg)}18%{opacity:1;transform:scale(1.12) rotate(2deg)}28%{transform:scale(1) rotate(0)}78%{opacity:1}100%{opacity:0;transform:translateY(-18px) scale(.96)}}
 .floatpts{position:absolute;font-family:var(--disp);font-weight:700;font-size:20px;color:#fff;animation:up .8s ease-out forwards;transform:translate(-50%,-50%);white-space:nowrap;text-shadow:-2px -2px 0 var(--outline),2px -2px 0 var(--outline),-2px 2px 0 var(--outline),2px 2px 0 var(--outline),0px -2px 0 var(--outline),0px 2px 0 var(--outline),-2px 0px 0 var(--outline),2px 0px 0 var(--outline),0 3px 0 var(--outline);}
 @keyframes up{0%{opacity:0;margin-top:6px}15%{opacity:1}100%{opacity:0;margin-top:-34px}}
+.floatpts.t2{font-size:26px;color:var(--gold)}
+.floatpts.t3{font-size:30px;color:#ffb35a}
+.floatpts.t5{font-size:35px;color:#ff8fd0}
+.pw.sm{font-size:30px}
+.ps.coins{color:var(--gold);font-size:19px}
+.cstamp{position:relative;display:flex;flex-direction:column;align-items:center;line-height:.92;animation:stamp 1.3s cubic-bezier(.2,1.5,.35,1) forwards}
+.cstamp small{font-family:var(--disp);font-weight:700;font-size:21px;letter-spacing:.14em;color:#fff;text-shadow:-2.5px -2.5px 0 var(--outline),2.5px -2.5px 0 var(--outline),-2.5px 2.5px 0 var(--outline),2.5px 2.5px 0 var(--outline),0 4px 0 var(--outline)}
+.cstamp b{font-family:var(--disp);font-weight:700;font-size:var(--sz,64px);color:var(--cc,#ffd234);text-shadow:-4px -4px 0 var(--outline),4px -4px 0 var(--outline),-4px 4px 0 var(--outline),4px 4px 0 var(--outline),0px -4px 0 var(--outline),0px 4px 0 var(--outline),-4px 0px 0 var(--outline),4px 0px 0 var(--outline),0 8px 0 var(--outline)}
+.rays{position:absolute;left:50%;top:50%;width:280px;height:280px;margin:-140px 0 0 -140px;border-radius:50%;z-index:-1;pointer-events:none;background:repeating-conic-gradient(var(--cc,#ffd234) 0 9deg,transparent 9deg 30deg);-webkit-mask:radial-gradient(circle,#000 0 18%,transparent 66%);mask:radial-gradient(circle,#000 0 18%,transparent 66%);opacity:.5;animation:spin 2.6s linear infinite}
+.cstamp.c5 b{animation:hue .7s linear infinite}
+@keyframes stamp{0%{opacity:0;transform:scale(2.7) rotate(-14deg)}13%{opacity:1;transform:scale(.9) rotate(3deg)}23%{transform:scale(1.07) rotate(-1deg)}32%{transform:none}80%{opacity:1;transform:none}100%{opacity:0;transform:scale(1.08) translateY(-16px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes hue{to{filter:hue-rotate(360deg)}}
 .count{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-weight:700;font-size:110px;color:var(--gold);text-shadow:-4px -4px 0 var(--outline),4px -4px 0 var(--outline),-4px 4px 0 var(--outline),4px 4px 0 var(--outline),0px -4px 0 var(--outline),0px 4px 0 var(--outline),-4px 0px 0 var(--outline),4px 0px 0 var(--outline),0 8px 0 var(--outline);}
 #fxCv{position:fixed;left:0;top:0;z-index:45;pointer-events:none}
 #flash{position:fixed;inset:0;z-index:44;pointer-events:none;opacity:0}
@@ -218,6 +231,20 @@ canvas{display:block}
 .rw .amt.neg{color:#ff8a96}
 .rw.big2{background:linear-gradient(90deg,rgba(255,210,52,.28),rgba(255,155,48,.18))}
 @keyframes rwIn{from{opacity:0;transform:translateY(10px) scale(.9)}}
+.chest{display:flex;flex-direction:column;align-items:center;gap:2px;--cc:#ffd234}
+.chest.t0{--cc:#9fb3ff}
+.chestBtn{position:relative;width:120px;height:100px;border:0;background:none;padding:0;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;isolation:isolate}
+.chestBtn .rays{width:200px;height:200px;margin:-100px 0 0 -100px;animation-duration:7s;opacity:.55}
+.cem{position:relative;font-size:70px;line-height:1;animation:idle 1.4s ease-in-out infinite}
+@keyframes idle{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg) scale(1.07)}}
+.chestBtn.rattle .cem{animation:rattle .65s linear}
+@keyframes rattle{0%,100%{transform:none}10%,50%,90%{transform:rotate(-14deg) scale(1.1)}30%,70%{transform:rotate(14deg) scale(1.2)}}
+.chest.open .cem{animation:popOpen .55s cubic-bezier(.3,1.9,.5,1)}
+.chest.open .rays{animation-duration:1.8s;opacity:.9}
+@keyframes popOpen{0%{transform:scale(.2)}100%{transform:none}}
+.chestTxt{font-family:var(--disp);font-weight:700;font-size:19px;color:var(--gold);text-shadow:0 2px 0 rgba(0,0,0,.35)}
+.chest.open .chestTxt{font-size:26px;animation:bump .45s}
+.chest.jack .chestTxt{color:#ff8fd0}
 
 @media (max-height:640px){
   .tray{height:90px}
@@ -229,6 +256,8 @@ canvas{display:block}
   @keyframes fade{0%,70%{opacity:1}100%{opacity:0}}
   .big.go.searching,.pbtn.glow,.clock.low,.boardWrap.c3,.boardWrap.c5{animation:none}
   .bump,.tray.shake,.skin.no,.rw,.opp.wobble,.pbtn.launch,.pmeter.hot i,.pmeter.dump{animation:none}
+  .cstamp{animation:fade 1.3s linear forwards}
+  .rays,.cem,.cstamp.c5 b,.chestBtn.rattle .cem,.chest.open .cem,.chest.open .chestTxt{animation:none}
 }
 </style>
 
@@ -352,7 +381,7 @@ canvas{display:block}
           <li><span class="n">2</span><div><b>Clear lines and build combos</b><span>Fill a row or column to clear it. Clear again within 3 moves to keep your combo going. Combos multiply your points.</span></div></li>
           <li><span class="n">3</span><div><b>Powers fire by themselves</b><span>Clears fill your power meter, and combos fill it faster. Every time it fills, the lit power goes off on its own, in this order: ❄️ Freeze (their pieces freeze for 5 seconds), 🌀 Scramble (their pieces turn big and ugly), then 💣 Bomb (saved for you, and if you get stuck it blows up a 3×3 spot so you can keep going).</span></div></li>
           <li><span class="n">4</span><div><b>Win the round</b><span>Most points after 2:00 wins. If none of your pieces fit and you have no bomb saved, you lose right away.</span></div></li>
-          <li><span class="n">5</span><div><b>Earn rewards</b><span>Every game gives coins and XP. Spend coins on block skins. Online wins also earn trophies and raise your rank.</span></div></li>
+          <li><span class="n">5</span><div><b>Earn rewards</b><span>Every game gives coins, XP and a reward chest to open (wins get the best chest). Combos of x2 and up drop extra coins. Spend coins on block skins. Online wins also earn trophies and raise your rank.</span></div></li>
         </ol>
       </div>
     </div>
@@ -366,6 +395,10 @@ canvas{display:block}
         <div><b id="rsScore">0</b><span>Score</span></div>
         <div><b id="rsCombo">0</b><span>Best combo</span></div>
         <div><b id="rsPowers">0</b><span>Powers used</span></div>
+      </div>
+      <div class="chest" id="chest">
+        <button class="chestBtn" id="chestBtn" aria-label="Open your reward chest"><i class="rays"></i><span class="cem" id="chestEm">🎁</span></button>
+        <div class="chestTxt" id="chestTxt">Tap to open!</div>
       </div>
       <div class="rewards" id="rewards"></div>
       <div class="prof">
@@ -418,8 +451,9 @@ const UGLY = SHAPES.filter(s => s.c.length >= 5);   // what a Scramble turns you
 const BOMB = shape([[0,0],[1,0],[2,0],[0,1],[1,1],[2,1],[0,2],[1,2],[2,2]], 0);
 const TOTALW = SHAPES.reduce((s, x) => s + x.wt, 0);
 function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
-// 1 line 10, 2 lines 30, 3 lines 60, 4 lines 100 ... then times your combo
-function lineScore(n) { return 5 * n * (n + 1); }
+// 1 line 100, 2 lines 300, 3 lines 600, 4 lines 1,000 ... then times your combo
+function lineScore(n) { return 50 * n * (n + 1); }
+const COMBO_COIN_CAP = 100;    // most coins combos can earn in one game
 
 /* ================= engine ================= */
 class Board {
@@ -427,7 +461,7 @@ class Board {
     this.b = new Uint8Array(N * N); this.rng = mulberry32(seed >>> 0);
     this.score = 0; this.combo = 0; this.comboLeft = 0; this.bestCombo = 0; this.lines = 0; this.moves = 0;
     this.power = 0; this.used = 0; this.ice = 0; this.dead = false; this.reason = ''; this.onDead = null;
-    this.fills = 0; this.bombs = 0; this.lastAtk = 0; this.chargeMul = 1;
+    this.fills = 0; this.bombs = 0; this.lastAtk = 0; this.chargeMul = 1; this.cc = 0;
     this.tray = []; this.deal();
   }
   gen() { let r = this.rng() * TOTALW; for (const s of SHAPES) { r -= s.wt; if (r <= 0) return { s, v: 1 + Math.floor(this.rng() * 8) }; } return { s: SHAPES[0], v: 1 }; }
@@ -456,7 +490,7 @@ class Board {
     this.tray[i] = null; this.moves++;
     const { rows, cols } = fullLines(this.b), n = rows.length + cols.length;
     const cleared = [], hadCombo = this.combo;
-    let gain = p.s.c.length, charge = 2, pc = false;
+    let gain = p.s.c.length * 10, charge = 2, pc = false, coins = 0;
     if (n) {
       const seen = new Set();
       for (const r of rows) for (let c = 0; c < N; c++) seen.add(r * N + c);
@@ -465,14 +499,16 @@ class Board {
       this.combo++; this.comboLeft = COMBO_MOVES; this.lines += n;
       if (this.combo > this.bestCombo) this.bestCombo = this.combo;
       pc = this.b.every(v => !v);
-      gain += lineScore(n) * this.combo + (pc ? 300 : 0);
+      gain += lineScore(n) * this.combo + (pc ? 3000 : 0);
       charge += n * 20 * Math.min(this.combo, 3) + (pc ? 40 : 0);
+      // combos of x2 and up drop coins: 2 at x2, 4 at x3, 6 at x4 ...
+      if (this.combo >= 2) { coins = Math.max(0, Math.min(2 * (this.combo - 1), COMBO_COIN_CAP - this.cc)); this.cc += coins; }
     } else if (this.combo && --this.comboLeft <= 0) { this.combo = 0; this.comboLeft = 0; }
     this.power = Math.min(MAX_POWER, this.power + Math.round(charge * this.chargeMul));
     this.score += gain;
     if (this.tray.every(t => !t)) this.deal();
     const saves = this.rescue();
-    return { n, rows, cols, cleared, combo: this.combo, broke: hadCombo > 0 && !this.combo, gain, charge, pc, p, x, y, saves };
+    return { n, rows, cols, cleared, combo: this.combo, broke: hadCombo > 0 && !this.combo, gain, charge, pc, p, x, y, saves, coins };
   }
   // stuck? a saved bomb goes off by itself on the most crowded 3x3 spot; no bomb means you're out
   rescue() {
@@ -484,7 +520,7 @@ class Board {
   blast(x, y) {
     const cleared = [];
     for (let r = y; r < y + 3; r++) for (let c = x; c < x + 3; c++) { const k = r * N + c; if (this.b[k]) { cleared.push({ k, v: this.b[k] }); this.b[k] = 0; } }
-    const gain = cleared.length * 2; this.score += gain; this.used++;
+    const gain = cleared.length * 20; this.score += gain; this.used++;
     return { cleared, gain, x, y };
   }
   // a full meter fires the next power on its own; returns what fired, or null
@@ -637,6 +673,10 @@ const sfx = {
   place: () => { tone(220, .09, 'triangle', .12, 140); noise(.05, .05, 1200); },
   bad: () => tone(180, .12, 'square', .04, 120),
   clear: (n, combo) => { const base = Math.min(combo, 5); for (let i = 0; i < Math.min(2 + n, 7); i++) tone(NOTES[Math.min(NOTES.length - 1, i + base)], .14, 'triangle', .08, 0, i * .055); },
+  // a rising stinger that climbs higher with every combo level
+  combo: k => { const b = Math.min(k, 7), up = k >= 5 ? 2 : 1; [0, 2, 4, 7].forEach((d, i) => tone(NOTES[Math.min(9, b - 2 + d)] * up, .17, 'square', .032, 0, .14 + i * .05)); tone(NOTES[Math.min(9, b + 2)] * up, .4, 'triangle', .07, 0, .34); noise(.3, .06, 2600 + k * 500, 'highpass', .1); },
+  chest: () => { for (let i = 0; i < 5; i++) noise(.06, .1, 900 + i * 150, 'bandpass', i * .12); },
+  jackpot: () => [0, 2, 4, 7, 9, 7, 9].forEach((k, i) => tone(NOTES[k] * (i > 4 ? 2 : 1), .22, 'square', .04, 0, i * .07)),
   broke: () => tone(330, .2, 'triangle', .05, 150),
   ready: () => { tone(880, .1, 'triangle', .07, 0, .2); tone(1320, .18, 'triangle', .07, 0, .29); },
   fire: () => { tone(420, .18, 'square', .04, 1400); noise(.14, .06, 2400, 'highpass'); },
@@ -855,7 +895,7 @@ function layout() {
 }
 
 // animation lists (board pixel space)
-const PARTS = [], POPS = [], CLEARS = [], RINGS = [], BOMBS = [], FLAKES = [];
+const PARTS = [], POPS = [], CLEARS = [], RINGS = [], BOMBS = [], FLAKES = [], BEAMS = [];
 function easeOutBack(t) { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); }
 function burst(x, y, color, n, spd, life) {
   if (REDUCED) n = Math.ceil(n / 3);
@@ -904,6 +944,18 @@ function drawBoard(now, dt) {
     ctx.drawImage(sprite(cl.col, c), x, y, d, d);
     if (t < .25) { ctx.globalAlpha = (1 - t / .25) * .8; rr(ctx, x, y, d, d, c * .14); ctx.fill(); }
     ctx.globalAlpha = 1;
+  }
+  // a beam of light shoots along every line you clear
+  for (let i = BEAMS.length - 1; i >= 0; i--) {
+    const b = BEAMS[i], t = (now - b.t0) / 460; if (t >= 1) { BEAMS.splice(i, 1); continue; }
+    const grow = 1 - Math.pow(1 - Math.min(1, t / .3), 3), fade = t < .3 ? 1 : 1 - (t - .3) / .7;
+    const len = c * N * grow, th = c * (.25 + .6 * fade), mid = p + c * N / 2;
+    ctx.save(); ctx.shadowColor = b.c; ctx.shadowBlur = c * .9;
+    ctx.globalAlpha = .55 * fade; ctx.fillStyle = b.c;
+    if (b.r != null) rr(ctx, mid - len / 2, p + (b.r + .5) * c - th * .8, len, th * 1.6, th * .8); else rr(ctx, p + (b.q + .5) * c - th * .8, mid - len / 2, th * 1.6, len, th * .8);
+    ctx.fill(); ctx.shadowBlur = 0; ctx.globalAlpha = fade; ctx.fillStyle = '#fff';
+    if (b.r != null) rr(ctx, mid - len / 2, p + (b.r + .5) * c - th / 4, len, th / 2, th / 4); else rr(ctx, p + (b.q + .5) * c - th / 4, mid - len / 2, th / 2, len, th / 4);
+    ctx.fill(); ctx.restore();
   }
   for (let i = POPS.length - 1; i >= 0; i--) if (now - POPS[i].t0 > 200) POPS.splice(i, 1);
   for (let i = PARTS.length - 1; i >= 0; i--) {
@@ -1002,17 +1054,35 @@ function drawOpp(now, o) {
 function bump(el) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
 function flash(el, cls) { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
 const PRAISE = ['', 'Good!', 'Great!', 'Excellent!', 'Amazing!', 'Unbelievable!'];
-let praiseTok = 0;
+let praiseTok = 0, stampUntil = 0;
 function praise(word, sub, tone) {
+  // let a combo stamp finish before other messages take its place
+  const wait = stampUntil - Date.now();
+  if (wait > 0) { setTimeout(() => praise(word, sub, tone), wait); return; }
   const tok = ++praiseTok, box = $('#praise'); box.textContent = '';
   if (word) { const w = document.createElement('div'); w.className = 'pw' + (tone ? ' ' + tone : ''); w.textContent = word; box.appendChild(w); }
   if (sub) { const s = document.createElement('div'); s.className = 'ps'; s.textContent = sub; box.appendChild(s); }
   setTimeout(() => { if (tok === praiseTok) box.textContent = ''; }, 1150);
 }
-function floatPts(text, x, y) {
-  const f = $('#floats'), el = document.createElement('div'); el.className = 'floatpts'; el.textContent = text;
+// combo colors: gold, orange, red, then hot pink from x5 up
+function comboRGB(cb) { return cb >= 5 ? '255,98,181' : cb >= 4 ? '255,90,80' : cb >= 3 ? '255,155,48' : cb >= 2 ? '255,210,52' : '127,243,255'; }
+// the big COMBO xN stamp that slams onto the board
+function comboStamp(cb, word, coins) {
+  const tok = ++praiseTok, box = $('#praise'); box.textContent = ''; stampUntil = Date.now() + 850;
+  if (word) { const w = document.createElement('div'); w.className = 'pw sm'; w.textContent = word; box.appendChild(w); }
+  const st = document.createElement('div'); st.className = 'cstamp' + (cb >= 5 ? ' c5' : '');
+  st.style.setProperty('--cc', 'rgb(' + comboRGB(cb) + ')'); st.style.setProperty('--sz', Math.min(100, 50 + cb * 9) + 'px');
+  const r = document.createElement('i'); r.className = 'rays';
+  const s = document.createElement('small'); s.textContent = 'COMBO';
+  const b = document.createElement('b'); b.textContent = 'x' + cb;
+  st.append(r, s, b); box.appendChild(st);
+  if (coins) { const c = document.createElement('div'); c.className = 'ps coins'; c.textContent = '+' + coins + ' 🪙'; box.appendChild(c); }
+  setTimeout(() => { if (tok === praiseTok) box.textContent = ''; }, 1300);
+}
+function floatPts(text, x, y, tier) {
+  const f = $('#floats'), el = document.createElement('div'); el.className = 'floatpts' + (tier ? ' ' + tier : ''); el.textContent = text;
   const br = cvB.getBoundingClientRect(), sr = $('#stage').getBoundingClientRect();
-  el.style.left = (br.left - sr.left + x) + 'px'; el.style.top = (br.top - sr.top + y) + 'px';
+  el.style.left = Math.max(56, Math.min(sr.width - 56, br.left - sr.left + x)) + 'px'; el.style.top = (br.top - sr.top + y) + 'px';
   f.appendChild(el); setTimeout(() => el.remove(), 820);
 }
 let shakeAmp = 0, shaken = false;
@@ -1024,7 +1094,16 @@ function applyShake(dt) {
 }
 /* screen effects: powers flying across the screen with glowing trails, sparks and color flashes */
 const fxCv = $('#fxCv'); let fxCtx = null, fxW = 0, fxH = 0, fxBusy = false;
-const SHOTS = [], SPARKS = [];
+const SHOTS = [], SPARKS = [], CONF = [];
+const CONF_COLS = ['#ffd234', '#ff62b5', '#2ed3e8', '#7dff6a', '#ff9b30', '#ffffff', '#8a5cff'];
+// confetti pops up from a spot and flutters down
+function confetti(x, y, n, spread) {
+  if (REDUCED) n = Math.ceil(n / 4);
+  for (let i = 0; i < n && CONF.length < 400; i++) {
+    const a = -Math.PI / 2 + (Math.random() - .5) * (spread || 2.2), v = .35 + Math.random() * .6;
+    CONF.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, r: Math.random() * 6, vr: (Math.random() - .5) * .02, w: 6 + Math.random() * 5, h: 3 + Math.random() * 4, c: CONF_COLS[i % CONF_COLS.length], life: 2400 + Math.random() * 900 });
+  }
+}
 function fxLayout() {
   const d = Math.min(2, window.devicePixelRatio || 1); fxW = window.innerWidth; fxH = window.innerHeight;
   fxCv.width = Math.round(fxW * d); fxCv.height = Math.round(fxH * d); fxCv.style.width = fxW + 'px'; fxCv.style.height = fxH + 'px';
@@ -1047,7 +1126,7 @@ function screenFlash(bg, ms) {
 }
 function drawFx(dt) {
   if (!fxCtx) return;
-  if (!SHOTS.length && !SPARKS.length) { if (fxBusy) { fxCtx.clearRect(0, 0, fxW, fxH); fxBusy = false; } return; }
+  if (!SHOTS.length && !SPARKS.length && !CONF.length) { if (fxBusy) { fxCtx.clearRect(0, 0, fxW, fxH); fxBusy = false; } return; }
   fxBusy = true; const ctx = fxCtx, now = performance.now();
   ctx.clearRect(0, 0, fxW, fxH);
   ctx.globalCompositeOperation = 'lighter';
@@ -1056,7 +1135,14 @@ function drawFx(dt) {
     q.x += q.vx * dt; q.y += q.vy * dt; q.vx *= .985; q.vy *= .985;
     ctx.globalAlpha = Math.min(1, q.life / 300); ctx.fillStyle = q.c; ctx.beginPath(); ctx.arc(q.x, q.y, q.s, 0, Math.PI * 2); ctx.fill();
   }
-  ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
+  for (let i = CONF.length - 1; i >= 0; i--) {
+    const q = CONF[i]; q.life -= dt; if (q.life <= 0 || q.y > fxH + 20) { CONF.splice(i, 1); continue; }
+    q.vy = Math.min(.26, q.vy + .0012 * dt); q.vx *= .985; q.x += q.vx * dt; q.y += q.vy * dt; q.r += q.vr * dt;
+    ctx.globalAlpha = Math.min(1, q.life / 400); ctx.save(); ctx.translate(q.x, q.y); ctx.rotate(q.r); ctx.scale(1, Math.cos(q.r * 3));
+    ctx.fillStyle = q.c; ctx.fillRect(-q.w / 2, -q.h / 2, q.w, q.h); ctx.restore();
+  }
+  ctx.globalAlpha = 1;
   for (let i = SHOTS.length - 1; i >= 0; i--) {
     const s = SHOTS[i], t = Math.min(1, (now - s.t0) / s.dur), e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2, u = 1 - e;
     const x = u * u * s.sx + 2 * u * e * s.mx + e * e * s.tx, y = u * u * s.sy + 2 * u * e * s.my + e * e * s.ty;
@@ -1091,13 +1177,17 @@ function fmt(ms) { const t = Math.max(0, Math.ceil(ms / 1000)); return Math.floo
 function renderHud(now, o) {
   const g = S.game, live = S.mode === 'play' || S.mode === 'timeup';
   const sc = g ? g.score : 0;
-  if (hud.sc !== sc) { const up = hud.sc != null && sc > hud.sc; hud.sc = sc; $('#score').textContent = fmtN(sc); if (up) bump($('#score')); }
+  // the score counts up instead of jumping
+  if (hud.sv == null || sc < hud.sv) hud.sv = sc;
+  else if (hud.sv < sc) hud.sv = Math.min(sc, hud.sv + Math.max(7, Math.ceil((sc - hud.sv) * .13)));
+  if (hud.sc !== hud.sv) { hud.sc = hud.sv; $('#score').textContent = fmtN(hud.sv); }
+  if (hud.st !== sc) { if (hud.st != null && sc > hud.st) bump($('#score')); hud.st = sc; }
   // combo badge: the dots are how many moves you have left to keep it going
   const cb = g && live ? g.combo : 0, cl = g ? g.comboLeft : 0, ck = cb + ':' + cl;
   if (hud.ck !== ck) {
     hud.ck = ck; const el = $('#combo'); el.hidden = !cb;
     if (cb) {
-      $('#comboTxt').textContent = 'Combo x' + cb;
+      $('#comboTxt').textContent = 'Combo x' + cb + (cb >= 3 ? ' 🔥' : '');
       el.classList.toggle('hot', cb >= 3 && cb < 5); el.classList.toggle('fire', cb >= 5);
       [...$('#pips').children].forEach((pip, i) => pip.classList.toggle('on', i < cl));
       if (cb > (hud.cbPrev || 0)) bump(el);
@@ -1189,19 +1279,34 @@ function afterPlace(info) {
   sfx.place(); buzz(8);
   const now = Date.now(), c = L.cell, p = L.pad;
   for (const [cx, cy] of info.p.s.c) POPS.push({ k: (info.y + cy) * N + info.x + cx, t0: now });
+  const cb = info.combo, rgb = comboRGB(info.n ? cb : 0), hue = 'rgb(' + rgb + ')';
   if (info.n) {
     const cx0 = info.x + info.p.s.w / 2, cy0 = info.y + info.p.s.h / 2;
+    for (const r of info.rows) BEAMS.push({ r, t0: now, c: hue });
+    for (const q of info.cols) BEAMS.push({ q, t0: now, c: hue });
     for (const cl of info.cleared) {
       const kx = cl.k % N, ky = (cl.k / N) | 0, color = col(cl.v);
       const delay = Math.hypot(kx - cx0, ky - cy0) * 28;
       CLEARS.push({ k: cl.k, col: color, t0: now, delay });
-      setTimeout(() => burst(p + (kx + .5) * c, p + (ky + .5) * c, color, 3 + Math.min(info.combo, 6), .18 + Math.min(info.combo, 6) * .02, 700), delay);
+      setTimeout(() => burst(p + (kx + .5) * c, p + (ky + .5) * c, color, 4 + Math.min(cb, 6) * 2, .2 + Math.min(cb, 6) * .03, 750), delay);
     }
-    sfx.clear(info.n, info.combo); kick(Math.min(14, 2 + info.n * 2 + info.combo)); buzz(info.n > 1 || info.combo > 2 ? [20, 30, 20] : 20);
-    const word = info.pc ? 'Board clear!' : info.combo >= 5 ? 'On fire!' : PRAISE[Math.min(info.n, PRAISE.length - 1)];
-    praise(word, info.combo > 1 ? 'Combo x' + info.combo + '!' : '', info.combo >= 5 ? 'pink' : info.n >= 3 || info.combo >= 3 ? 'gold' : '');
+    // glowing sparks fly off the cleared lines, more of them the bigger the combo
+    if (cb >= 2 || info.n >= 2) {
+      const br = cvB.getBoundingClientRect(), k = br.width / (c * N + p * 2), spots = [];
+      for (const r of info.rows) for (let q = 0; q < N; q += 2) spots.push([q + .5 + Math.random(), r + .5]);
+      for (const q of info.cols) for (let r = 0; r < N; r += 2) spots.push([q + .5, r + .5 + Math.random()]);
+      for (const [x, y] of spots) sparkBurst(br.left + (p + x * c) * k, br.top + (p + y * c) * k, hue, 2 + Math.min(cb, 6), .2 + Math.min(cb, 6) * .02);
+    }
+    sfx.clear(info.n, cb); if (cb >= 2) sfx.combo(cb);
+    kick(Math.min(20, 2 + info.n * 2 + cb * 1.6));
+    buzz(cb >= 4 ? [30, 25, 30, 25, 60] : cb >= 2 || info.n > 1 ? [20, 30, 25] : 20);
+    if (cb >= 3) screenFlash('radial-gradient(ellipse at 50% 55%, rgba(0,0,0,0) 42%, rgba(' + rgb + ',.6) 100%)', 560);
+    const word = info.pc ? 'Board clear!' : PRAISE[Math.min(info.n, PRAISE.length - 1)];
+    if (cb >= 2) comboStamp(cb, word, info.coins);
+    else praise(word, '', info.n >= 3 || info.pc ? 'gold' : '');
+    if (info.pc) { const pt = centerOf(cvB); confetti(pt[0], pt[1], 70, 3.2); }
   } else if (info.broke) { sfx.broke(); praise('', 'Combo lost', 'red'); }
-  floatPts('+' + fmtN(info.gain), p + (info.x + info.p.s.w / 2) * c, p + (info.y + info.p.s.h / 2) * c);
+  floatPts('+' + fmtN(info.gain), p + (info.x + info.p.s.w / 2) * c, p + (info.y + info.p.s.h / 2) * c, !info.n ? '' : cb >= 5 ? 't5' : cb >= 3 ? 't3' : cb >= 2 || info.n >= 2 ? 't2' : '');
   if (info.saves && info.saves.length) setTimeout(() => info.saves.forEach(sv => afterBomb(sv)), 350);
 }
 function afterBomb(info) {
@@ -1269,7 +1374,7 @@ function hitMe(kind, from) {
 function hideScreens() { $('#lobby').hidden = true; $('#result').hidden = true; }
 let wakeLock = null;
 function keepAwake() { try { navigator.wakeLock && navigator.wakeLock.request('screen').then(w => { wakeLock = w; }).catch(() => {}); } catch (e) {} }
-function resetFx() { PARTS.length = 0; POPS.length = 0; CLEARS.length = 0; RINGS.length = 0; BOMBS.length = 0; FLAKES.length = 0; SHOTS.length = 0; SPARKS.length = 0; S.frost = null; S.scrT0 = 0; S.wasIced = false; $('#praise').textContent = ''; $('#floats').textContent = ''; drag = null; cvD.hidden = true; }
+function resetFx() { PARTS.length = 0; POPS.length = 0; CLEARS.length = 0; RINGS.length = 0; BOMBS.length = 0; FLAKES.length = 0; BEAMS.length = 0; SHOTS.length = 0; SPARKS.length = 0; CONF.length = 0; S.frost = null; S.scrT0 = 0; S.wasIced = false; $('#praise').textContent = ''; $('#floats').textContent = ''; drag = null; cvD.hidden = true; }
 let countShown = null;
 function beginCountdown() {
   resetFx();
@@ -1346,54 +1451,134 @@ function endRound(meWon, reason, theirScore) {
     $('#againBtn').textContent = 'Play again'; $('#againBtn').classList.remove('searching'); $('#againBtn').disabled = false;
     $('#result').hidden = false; $('#result').scrollTop = 0;
     showRewards(rw);
+    if (meWon === true) { confetti(fxW * .25, fxH * .3, 45, 2.4); confetti(fxW * .75, fxH * .3, 45, 2.4); }
   }, 1400);
 }
 function grantRewards(res, g) {
-  const online = !S.vsCpu, out = [], score = g ? g.score : 0, trBefore = P.tr;
+  const online = !S.vsCpu, out = [], score = g ? g.score : 0, trBefore = P.tr, lv0 = P.lv, xp0 = P.xp, coins0 = P.coins;
   let coins = online ? (res === true ? 40 : res === null ? 20 : 15) : (res === true ? ({ easy: 10, normal: 20, hard: 30 })[S.cpuLevel] : res === null ? 8 : 5);
   out.push({ ic: '🪙', t: (res === true ? 'Win' : res === null ? 'Tie' : 'Played a game') + (online ? ' online' : ' vs computer'), a: coins, u: 'coins' });
-  const bc = g ? g.bestCombo : 0;
-  if (bc >= 2) { const b = Math.min(30, (bc - 1) * 3); coins += b; out.push({ ic: '🔥', t: 'Best combo x' + bc, a: b, u: 'coins' }); }
+  const bc = g ? g.bestCombo : 0, cc = g ? Math.min(COMBO_COIN_CAP, g.cc || 0) : 0;
+  if (cc > 0) { coins += cc; out.push({ ic: '🔥', t: 'Combo coins (best x' + bc + ')', a: cc, u: 'coins' }); }
   if (online) {
     if (res === true) {
       P.streak++;
       if (P.streak >= 3) { coins += 10; out.push({ ic: '⚡', t: P.streak + ' online wins in a row', a: 10, u: 'coins' }); }
-      if (P.day !== today()) { P.day = today(); coins += 50; out.push({ ic: '🎁', t: 'First online win today', a: 50, u: 'coins', big: true }); }
+      if (P.day !== today()) { P.day = today(); coins += 50; out.push({ ic: '🌞', t: 'First online win today', a: 50, u: 'coins', big: true }); }
     } else if (res === false) P.streak = 0;
     const dt = res === true ? 25 : res === null ? 5 : -Math.min(10, P.tr);
     P.tr += dt;
     out.push({ ic: '🏆', t: 'Trophies (' + rankOf(P.tr).n + ')', a: dt, u: '' });
   }
-  P.coins += coins; P.games++; if (res === true) P.wins++;
-  const xp = online ? 40 + Math.min(60, Math.floor(score / 50)) : 15 + Math.min(30, Math.floor(score / 100));
+  // the reward chest: wins get the best one, and online games pay double
+  const tier = res === true ? 2 : res === null ? 1 : 0;
+  let chest = [[10, 15, 20, 25], [20, 30, 40, 50], [30, 45, 60, 80]][tier][Math.floor(Math.random() * 4)];
+  const jackpot = Math.random() < (tier === 2 ? .1 : .04);
+  if (jackpot) chest *= 3;
+  if (online) chest *= 2;
+  P.coins += coins + chest; P.games++; if (res === true) P.wins++;
+  const xp = online ? 40 + Math.min(60, Math.floor(score / 500)) : 15 + Math.min(30, Math.floor(score / 1000));
   P.xp += xp; out.push({ ic: '⭐', t: 'Experience', a: xp, u: 'XP' });
   let ups = 0;
   while (P.xp >= xpNeed(P.lv)) { P.xp -= xpNeed(P.lv); P.lv++; ups++; P.coins += 25; }
-  if (ups) out.push({ ic: '🎉', t: 'Level up! You are level ' + P.lv, a: 25 * ups, u: 'coins', big: true });
+  if (ups) out.push({ ic: '🎉', t: 'Level up! Now level ' + P.lv, a: 25 * ups, u: 'coins', big: true });
   const nr = rankOf(P.tr), orr = rankOf(trBefore);
   if (online && nr !== orr) out.push({ ic: '🏅', t: (P.tr > trBefore ? 'Ranked up to ' : 'Dropped to ') + nr.n, a: null, big: P.tr > trBefore });
   saveProfile(); renderProfile();
-  log('reward', JSON.stringify({ res, coins, lv: P.lv, tr: P.tr }));
-  return { out, ups };
+  log('reward', JSON.stringify({ res, coins, chest, lv: P.lv, tr: P.tr }));
+  return { out, ups, chest, jackpot, tier, lv0, xp0, gained: P.coins - coins0 };
+}
+// numbers roll up instead of just appearing
+function countTo(el, from, to, ms, fmt, delay) {
+  const t0 = performance.now() + (delay || 0);
+  el.textContent = fmt(from);
+  const step = t => { const k = Math.max(0, Math.min(1, (t - t0) / ms)), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(Math.round(from + (to - from) * e)); if (k < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+const coinFmt = v => '🪙 ' + fmtN(v);
+const xpPct = (xp, lv) => Math.min(100, xp / xpNeed(lv) * 100).toFixed(1) + '%';
+let rwTok = 0;
+// the coin total on the results screen rolls toward whatever has landed so far
+const coinRoll = { v: 0, on: false, rw: null };
+function coinGoal(rw) { return rw.base + (rw.rowsIn ? rw.rowCoins : 0) + (rw.opened ? rw.chest : 0); }
+function rollCoins() {
+  if (coinRoll.on) return; coinRoll.on = true;
+  const step = () => {
+    const rw = coinRoll.rw; if (!rw) { coinRoll.on = false; return; }
+    const d = coinGoal(rw) - coinRoll.v;
+    if (Math.abs(d) < 1) { coinRoll.on = false; return; }
+    coinRoll.v += d > 0 ? Math.max(1, Math.ceil(d * .07)) : Math.min(-1, Math.floor(d * .07));
+    $('#rsCoins').textContent = coinFmt(coinRoll.v); requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
 }
 function showRewards(rw) {
-  const box = $('#rewards'); box.textContent = '';
+  const tok = ++rwTok, box = $('#rewards'); box.textContent = '';
+  S.lastRw = rw;
+  // the chest waits to be tapped open
+  const ch = $('#chest'), btn = $('#chestBtn');
+  ch.className = 'chest t' + rw.tier; btn.disabled = false; btn.classList.remove('rattle');
+  $('#chestEm').textContent = '🎁';
+  $('#chestTxt').textContent = (rw.tier === 2 ? 'Winner’s chest! ' : '') + 'Tap to open';
+  let rowCoins = 0, last = 0;
   rw.out.forEach((r, i) => {
-    const d = document.createElement('div'); d.className = 'rw' + (r.big ? ' big2' : ''); d.style.animationDelay = (i * .14) + 's';
+    const delay = 250 + i * 260; last = delay;
+    const d = document.createElement('div'); d.className = 'rw' + (r.big ? ' big2' : ''); d.style.animationDelay = (delay / 1000) + 's';
     const ic = document.createElement('span'); ic.className = 'ic'; ic.textContent = r.ic;
     const t = document.createElement('span'); t.className = 't'; t.textContent = r.t;
     d.append(ic, t);
-    if (r.a != null) { const a = document.createElement('span'); a.className = 'amt' + (r.a < 0 ? ' neg' : ''); a.textContent = (r.a < 0 ? '−' + Math.abs(r.a) : '+' + r.a) + (r.u ? ' ' + r.u : ''); d.appendChild(a); }
+    if (r.a != null) {
+      const a = document.createElement('span'); a.className = 'amt' + (r.a < 0 ? ' neg' : ''); d.appendChild(a);
+      countTo(a, 0, r.a, 500, v => (v < 0 ? '−' + Math.abs(v) : '+' + v) + (r.u ? ' ' + r.u : ''), delay);
+    }
     box.appendChild(d);
-    if (r.u === 'coins') sfx.coin(i * .14);
+    if (r.u === 'coins') { rowCoins += r.a; sfx.coin(delay / 1000); }
+    if (r.big) setTimeout(() => { if (tok !== rwTok) return; const pt = centerOf(d); sparkBurst(pt[0], pt[1], '#ffd234', 24, .3); }, delay + 200);
   });
-  if (rw.ups) sfx.levelUp();
-  $('#rsLv').textContent = P.lv;
-  $('#rsXpTxt').textContent = P.xp + ' / ' + xpNeed(P.lv) + ' XP';
-  $('#rsCoins').textContent = '🪙 ' + fmtN(P.coins);
-  $('#rsXp').style.width = '0%';
-  setTimeout(() => { $('#rsXp').style.width = Math.min(100, P.xp / xpNeed(P.lv) * 100).toFixed(1) + '%'; }, 120);
+  // coin total rolls up as the rows land (the chest adds its share when it's opened)
+  rw.base = P.coins - rw.gained; rw.rowCoins = rowCoins; rw.rowsIn = false; rw.opened = false;
+  coinRoll.rw = rw; coinRoll.v = rw.base; $('#rsCoins').textContent = coinFmt(rw.base);
+  setTimeout(() => { if (tok !== rwTok) return; rw.rowsIn = true; rollCoins(); }, 450);
+  // XP bar fills from where it was; a level up fills it, flashes, and starts over
+  const xb = $('#rsXp'), lvEl = $('#rsLv');
+  lvEl.textContent = rw.lv0; $('#rsXpTxt').textContent = rw.xp0 + ' / ' + xpNeed(rw.lv0) + ' XP';
+  xb.style.transition = 'none'; xb.style.width = xpPct(rw.xp0, rw.lv0); void xb.offsetWidth; xb.style.transition = '';
+  setTimeout(() => {
+    if (tok !== rwTok) return;
+    if (!rw.ups) { xb.style.width = xpPct(P.xp, P.lv); $('#rsXpTxt').textContent = P.xp + ' / ' + xpNeed(P.lv) + ' XP'; return; }
+    xb.style.width = '100%';
+    setTimeout(() => {
+      if (tok !== rwTok) return;
+      lvEl.textContent = P.lv; bump(lvEl.parentNode); sfx.levelUp(); buzz([30, 40, 30]);
+      const pt = centerOf(lvEl.parentNode); confetti(pt[0], pt[1], 60, 2.6); sparkBurst(pt[0], pt[1], '#ffd234', 30, .35);
+      xb.style.transition = 'none'; xb.style.width = '0%'; void xb.offsetWidth; xb.style.transition = '';
+      xb.style.width = xpPct(P.xp, P.lv); $('#rsXpTxt').textContent = P.xp + ' / ' + xpNeed(P.lv) + ' XP';
+    }, 800);
+  }, last + 500);
 }
+function openChest() {
+  const rw = S.lastRw, btn = $('#chestBtn'); if (!rw || btn.disabled) return;
+  btn.disabled = true; audioInit(); sfx.chest(); buzz([15, 50, 15, 50, 15]);
+  flash(btn, 'rattle');
+  const tok = rwTok;
+  setTimeout(() => {
+    if (tok !== rwTok) return;
+    const ch = $('#chest'); ch.classList.add('open'); ch.classList.toggle('jack', rw.jackpot);
+    $('#chestEm').textContent = rw.jackpot ? '💰' : '🪙';
+    $('#chestTxt').textContent = (rw.jackpot ? 'JACKPOT! ' : '') + '+' + rw.chest + ' coins';
+    if (rw.jackpot) sfx.jackpot(); else sfx.win();
+    buzz([40, 30, 90]);
+    screenFlash('radial-gradient(circle at 50% 45%, rgba(255,230,140,.75), rgba(255,210,52,0) 65%)', 520);
+    const pt = centerOf(btn);
+    sparkBurst(pt[0], pt[1], '#ffd234', 40, .42); sparkBurst(pt[0], pt[1], '#ffffff', 16, .3);
+    confetti(pt[0], pt[1], rw.jackpot ? 110 : 45, rw.jackpot ? 3.4 : 2.4);
+    // coins fly out of the chest into your total
+    const n = Math.min(12, 3 + Math.round(rw.chest / 15));
+    for (let i = 0; i < n; i++) setTimeout(() => { if (tok === rwTok) shot('🪙', btn, $('#rsCoins'), '#ffd234', true, () => sfx.coin(0)); }, i * 80);
+    setTimeout(() => { if (tok !== rwTok) return; rw.opened = true; rollCoins(); }, REDUCED ? 0 : 620);
+  }, REDUCED ? 0 : 650);
+}
+$('#chestBtn').addEventListener('click', openChest);
 function toLobby() {
   S.mode = 'lobby'; S.mid = null; S.go = null; S.opp = null; S.cpu = null; S.game = null; S.vsCpu = false; S.netSt = 'lobby';
   resetFx(); hideScreens(); $('#count').hidden = true; $('#lobby').hidden = false; musicStop();
@@ -1482,7 +1667,7 @@ setInterval(() => { hb = (hb + 1) % 1000; }, 2000);
 function presenceState() {
   const g = S.game, inR = !!(S.mid && g && !S.vsCpu), now = Date.now();
   return {
-    v: 5, nm: S.name, st: S.netSt, mid: S.vsCpu ? null : S.mid, go: S.go,
+    v: 6, nm: S.name, st: S.netSt, mid: S.vsCpu ? null : S.mid, go: S.go,
     b: inR ? g.encode() : null, sc: inR ? g.score : 0, cb: inR ? g.combo : 0, pm: inR ? Math.min(FULL, g.power) : 0, nx: inR ? g.nextKind() : null, bm: inR ? g.bombs : 0, fz: inR && g.frozen(now) ? 1 : 0,
     pw: inR ? S.pwOut.slice() : [], tg: inR && S.opp ? pkey(S.opp) : null,
     w: S.wins, de: S.myDe, lv: P.lv, rk: P.tr, sk: P.skin, vis: !document.hidden, hb
@@ -1500,7 +1685,7 @@ setInterval(() => flushPresence(Date.now()), 110);
 let readyKey = '', readySince = 0;
 function netTick(now) {
   if (!NET.room || !NET.me || S.mode !== 'search' || document.hidden) return;
-  const players = NET.peers.filter(p => p.kind === 'viewer' && p.presence && p.presence.v === 5 && !(typeof p.updatedAt === 'number' && now - p.updatedAt > 12000));
+  const players = NET.peers.filter(p => p.kind === 'viewer' && p.presence && p.presence.v === 6 && !(typeof p.updatedAt === 'number' && now - p.updatedAt > 12000));
   let best = null;
   for (const p of players) {
     const go = p.presence.go;
@@ -1532,7 +1717,7 @@ async function initNet() {
 let lobbySig = '';
 function renderLobby() {
   const now = Date.now();
-  const others = NET.peers.filter(p => p.kind === 'viewer' && !p.sameTab && p.presence && p.presence.v === 5 && !(typeof p.updatedAt === 'number' && now - p.updatedAt > 12000));
+  const others = NET.peers.filter(p => p.kind === 'viewer' && !p.sameTab && p.presence && p.presence.v === 6 && !(typeof p.updatedAt === 'number' && now - p.updatedAt > 12000));
   const waiting = others.filter(p => p.presence.st === 'wait' && p.presence.vis !== false);
   const away = others.filter(p => p.presence.vis === false);
   const searching = S.mode === 'search';
