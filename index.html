@@ -284,6 +284,11 @@ canvas{display:block}
 #app.classic .me{grid-template-columns:1fr}
 #app.classic .scoreBox{align-items:center}
 #app.classic .score{font-size:46px}
+/* online Classic: you still see the other player's board and score */
+#app.duel #oppCv{display:block}
+#app.duel .wins{display:block}
+.seg.two{grid-template-columns:repeat(2,1fr)}
+.hint.out{color:var(--gold)}
 .card.classicCard{background:linear-gradient(135deg,rgba(64,190,110,.32),rgba(18,25,86,.82) 60%);box-shadow:inset 0 0 0 2px rgba(125,255,150,.28)}
 .bestLine{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .bestLine b{font-family:var(--disp);font-weight:700;font-size:22px;color:var(--gold)}
@@ -377,7 +382,12 @@ canvas{display:block}
       </div>
 
       <div class="card">
-        <span class="lbl">Battle online</span>
+        <span class="lbl">Play online</span>
+        <div class="seg two" id="modeSeg" role="group" aria-label="Online game type">
+          <button data-md="b" aria-pressed="true">⚔️ Battle</button>
+          <button data-md="c" aria-pressed="false">🧩 Classic</button>
+        </div>
+        <p class="note" id="modeNote"></p>
         <label class="lbl" for="nameInput">Your name</label>
         <input id="nameInput" maxlength="14" autocomplete="off" spellcheck="false">
         <div class="friendRoom" id="friendRoom" hidden>
@@ -962,6 +972,8 @@ const NET = { room: null, me: null, peers: [], avail: 'pending' };
 const NAMES = ['Blaster', 'Stacker', 'Smasher', 'Dumpster', 'Rubble', 'Brick', 'Crusher', 'Scrapper'];
 S.name = cleanName(load('gd_name')) || (NAMES[Math.floor(Math.random() * NAMES.length)] + ' ' + (10 + Math.floor(Math.random() * 90)));
 if (CPU[load('gd_cpu2')]) S.cpuLevel = load('gd_cpu2');
+// which kind of online game you want: 'b' battle or 'c' Classic
+S.netMode = load('gd_netmode') === 'c' ? 'c' : 'b';
 SND.on = load('gd_snd') !== '0'; SND.music = load('gd_music') !== '0'; SND.vib = load('gd_vib') !== '0';
 
 /* ================= drawing ================= */
@@ -1362,8 +1374,10 @@ function renderHud(now, o) {
   let hint = '', cls = '';
   if (S.mode === 'countdown') hint = 'Get ready!';
   else if (S.mode === 'timeup') hint = "Time's up! Adding up the scores…";
+  else if (S.mode === 'duelwait' && g) { hint = 'Out at ' + fmtN(g.score) + '. ' + (o ? o.name : 'They') + ' needs ' + fmtN(g.score + 1) + ' to win.'; cls = 'out'; }
   else if (S.mode !== 'play' || !g) hint = '';
   else if (g.dead) hint = 'You ran out of room.';
+  else if (S.duel && o && o.inM && (o.st === 'dead' || o.st === 'done')) { hint = o.name + ' is out at ' + fmtN(o.sc) + '. Beat it to win!'; cls = 'out'; }
   else if (S.hintNote && now < S.hintNote.until) { hint = S.hintNote.t; cls = 'warn'; }
   else if (g.frozen(now)) { hint = 'Frozen! Your pieces thaw in ' + Math.ceil((g.ice - now) / 1000) + 's'; cls = 'ice'; }
   else if (danger && !cb) { hint = 'Running out of room! Clear some lines.'; cls = 'danger'; }
@@ -1375,7 +1389,7 @@ function renderHud(now, o) {
   setText($('#hint'), 'hint', hint);
   if (hud.hcls !== cls) { hud.hcls = cls; $('#hint').className = 'hint' + (cls ? ' ' + cls : ''); }
   // opponent card
-  if (S.classic) {
+  if (S.classic && !S.duel) {
     // Classic: the top card shows your best score instead of an opponent
     setText($('#oppName'), 'on', 'Classic');
     const bst = Math.max(P.best || 0, S.newBest && g ? g.score : 0);
@@ -1400,7 +1414,7 @@ function renderHud(now, o) {
     S.lastOppCb = o.cb; S.lastOppSc = o.sc;
   }
   // Classic: the card shows whether your free bomb is still waiting
-  if (S.classic && live && g) {
+  if (S.classic && !S.duel && live && g) {
     if (S.oppNote && now < S.oppNote.until) { oi = S.oppNote.t; ocls = 'hot'; }
     else if (g.bombs > 0) { oi = '\ud83d\udca3 Second chance ready'; ocls = ''; }
     else { oi = 'Second chance used'; ocls = ''; }
@@ -1564,11 +1578,11 @@ let countShown = null;
 function beginCountdown() {
   resetFx();
   // Classic skips the 3-2-1 and goes straight to GO
-  S.mode = 'countdown'; S.countEnd = Date.now() + (S.classic ? 0 : 3000); S.roundStartedAt = Date.now();
+  S.mode = 'countdown'; S.countEnd = Date.now() + (S.classic && !S.duel ? 0 : 3000); S.roundStartedAt = Date.now();
   S.myDe = null; S.myReason = ''; S.oppNote = null; S.hintNote = null; S.lastOppCb = 0; S.lastOppSc = null; S.deadAt = 0;
   countShown = null; $('#count').textContent = S.classic ? '' : '3';
   hideScreens(); $('#count').hidden = false; hud = {};
-  $('#app').classList.toggle('classic', !!S.classic);
+  $('#app').classList.toggle('classic', !!S.classic); $('#app').classList.toggle('duel', !!S.duel);
   requestAnimationFrame(layout); keepAwake();
   musicStop(); musicStart();
 }
@@ -1576,7 +1590,7 @@ function beginCountdown() {
 function startClassic(resume) {
   if (S.mode === 'countdown' || S.mode === 'play' || S.mode === 'timeup') return;
   audioInit();
-  S.classic = true; S.vsCpu = false; S.cpu = null; S.mid = null; S.go = null; S.opp = null; S.netSt = 'lobby';
+  S.classic = true; S.duel = false; S.vsCpu = false; S.cpu = null; S.mid = null; S.go = null; S.opp = null; S.netSt = 'lobby';
   const g = makeGame(Math.floor(Math.random() * 2147483647), true);
   g.power = 0; g.chargeMul = 0; g.bombs = 1; g.helpful = CLASSIC_HELPFUL; g.ramp = true; g.ccCap = 40;
   const d = resume === true ? loadClassic() : null;
@@ -1594,7 +1608,7 @@ function startClassic(resume) {
 // a Classic game in progress is saved after every move, so leaving or a reload doesn't lose it
 const SAVE_KEY = 'gd_classic';
 function saveClassic() {
-  const g = S.game; if (!S.classic || !g || g.dead || S.mode !== 'play') return;
+  const g = S.game; if (!S.classic || S.duel || !g || g.dead || S.mode !== 'play') return;
   const t = g.tray.map(p => p ? [SHAPES.indexOf(p.s), p.v] : null);
   if (t.some(x => x && x[0] < 0)) return;
   store(SAVE_KEY, JSON.stringify({ b: g.encode(), t, sc: g.score, cb: g.combo, cl: g.comboLeft, bc: g.bestCombo, mv: g.moves, ln: g.lines, bm: g.bombs, cc: g.cc, ba: S.bestAtStart, nb: S.newBest }));
@@ -1606,7 +1620,7 @@ function clearClassic() { store(SAVE_KEY, ''); }
 function startCpu() {
   if (S.mode === 'countdown' || S.mode === 'play' || S.mode === 'timeup') return;
   audioInit();
-  S.classic = false; S.vsCpu = true; S.mid = null; S.go = null; S.opp = null; S.netSt = 'lobby';
+  S.classic = false; S.duel = false; S.vsCpu = true; S.mid = null; S.go = null; S.opp = null; S.netSt = 'lobby';
   const seed = Math.floor(Math.random() * 2147483647);
   S.game = makeGame(seed, true); S.cpu = makeGame(seed, false); S.cpuT = 2200;
   S.cpu.chargeMul = CPU[S.cpuLevel].charge;
@@ -1615,18 +1629,28 @@ function startCpu() {
 function startOnline(go) {
   log('start', go.mid);
   S.usedMids.add(go.mid);
-  S.classic = false; S.vsCpu = false; S.cpu = null; S.mid = go.mid; S.opp = go.pl.find(p => p !== NET.me) || null;
+  const duel = go.md === 'c'; setNetMode(go.md);
+  S.classic = duel; S.duel = duel; S.vsCpu = false; S.cpu = null; S.mid = go.mid; S.opp = go.pl.find(p => p !== NET.me) || null;
   S.netSt = 'play'; S.seen = Date.now(); S.lastPr = {};
   S.pwOut = []; S.pwSeq = 0; S.pwIn = 0;
-  S.game = makeGame(Number(go.seed) >>> 0, true);
+  const g = makeGame(Number(go.seed) >>> 0, true);
+  // online Classic: both of you get a Classic board (no powers, one free bomb, no timer)
+  if (duel) { g.power = 0; g.chargeMul = 0; g.bombs = 1; g.helpful = CLASSIC_HELPFUL; g.ramp = true; g.ccCap = 40; g.deal(); S.bestAtStart = P.best || 0; S.newBest = false; }
+  S.game = g;
   beginCountdown();
 }
 function onMyDeath(reason) {
   if (S.mode !== 'play') return;
-  S.deadAt = Date.now(); if (S.classic) clearClassic();
+  S.deadAt = Date.now(); if (S.classic && !S.duel) clearClassic();
   kick(10); buzz([60, 40, 120]);
   S.myDe = Math.round(Date.now() - S.playStart); S.myReason = reason;
   drag = null; cvD.hidden = true;
+  if (S.duel) {
+    // online Classic: you're out with your score; they keep going until they pass it or get stuck too
+    S.netSt = 'dead'; S.mode = 'duelwait'; musicStop(); lastFlush = 0; flushPresence(Date.now());
+    praise('Out of room', 'Your score: ' + fmtN(S.game ? S.game.score : 0), '');
+    return;
+  }
   if (S.classic) { endClassic(); return; }
   if (S.vsCpu) { endRound(false, reason); return; }
   S.netSt = 'dead'; S.mode = 'roundwait'; S.waitUntil = Date.now() + 900;
@@ -1658,6 +1682,12 @@ function endRound(meWon, reason, theirScore) {
   else if (reason === 'tie') why = 'Same score: ' + fmtN(my) + ' each.';
   else if (meWon) why = reason === 'left' ? on + ' left the game.' : on + ' ran out of room.';
   else why = reason === 'left' ? 'You left the game for too long.' : 'None of your pieces fit anymore.';
+  if (S.duel) {
+    if (reason === 'passed') why = 'You passed ' + on + '\u2019s final score of ' + fmtN(their) + '!';
+    else if (reason === 'points' && meWon === false) why = on + ' passed your score of ' + fmtN(my) + '.';
+    else if (reason === 'points' && meWon === true) why = on + ' got stuck at ' + fmtN(their) + '. You had ' + fmtN(my) + '.';
+    if (g && g.score > (P.best || 0)) P.best = g.score;
+  }
   const rw = grantRewards(meWon, g);
   setTimeout(() => {
     if (S.mode !== 'over') return;
@@ -1698,7 +1728,7 @@ function endClassic() {
   }, 1300);
 }
 function grantRewards(res, g) {
-  const classic = !!S.classic, online = !S.vsCpu && !classic, out = [], score = g ? g.score : 0, trBefore = P.tr, lv0 = P.lv, xp0 = P.xp, coins0 = P.coins;
+  const classic = !!S.classic && !S.duel, online = !S.vsCpu && !classic, out = [], score = g ? g.score : 0, trBefore = P.tr, lv0 = P.lv, xp0 = P.xp, coins0 = P.coins;
   let coins;
   if (classic) {
     // Classic pays by score; res is true for a new best
@@ -1831,15 +1861,27 @@ function openChest() {
 }
 $('#chestBtn').addEventListener('click', openChest);
 function toLobby() {
-  S.mode = 'lobby'; S.mid = null; S.go = null; S.opp = null; S.cpu = null; S.game = null; S.vsCpu = false; S.classic = false; S.netSt = 'lobby';
-  $('#app').classList.remove('classic');
+  S.mode = 'lobby'; S.mid = null; S.go = null; S.opp = null; S.cpu = null; S.game = null; S.vsCpu = false; S.classic = false; S.duel = false; S.netSt = 'lobby';
+  $('#app').classList.remove('classic', 'duel');
   resetFx(); hideScreens(); $('#count').hidden = true; $('#lobby').hidden = false; musicStop();
   if (wakeLock) { try { wakeLock.release(); } catch (e) {} wakeLock = null; }
   hud = {}; lobbySig = ''; renderLobby(); renderProfile(); draw(Date.now());
 }
+function modeOf(pr) { return pr && pr.md === 'c' ? 'c' : 'b'; }
+// if someone is already waiting (like a friend who sent you a link), join the kind of game they picked
+function waitingOthers(now) {
+  return NET.peers.filter(p => p.kind === 'viewer' && !p.sameTab && p.presence && p.presence.v === 8 && p.presence.st === 'wait' && p.presence.vis !== false && !(typeof p.updatedAt === 'number' && now - p.updatedAt > 12000));
+}
+function setNetMode(md) {
+  S.netMode = md === 'c' ? 'c' : 'b'; store('gd_netmode', S.netMode);
+  document.querySelectorAll('#modeSeg button').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.md === S.netMode)));
+  $('#modeNote').textContent = S.netMode === 'c' ? 'Calm: you each play Classic side by side. No attacks, no timer. Highest score when you\u2019re both out of room wins.' : 'Wild: 3 minutes, combos fire freezes, scrambles and bombs at each other. Most points wins.';
+  lobbySig = '';
+}
 function search() {
   if (NET.avail !== 'yes' || !NET.me) return;
   audioInit();
+  const w = waitingOthers(Date.now()); if (w.length) setNetMode(modeOf(w[0].presence));
   S.mode = 'search'; S.netSt = 'wait'; S.vsCpu = false; readySince = Date.now(); lobbySig = ''; renderLobby();
   log('search', ROOM);
 }
@@ -1919,7 +1961,7 @@ setInterval(() => { hb = (hb + 1) % 1000; }, 2000);
 function presenceState() {
   const g = S.game, inR = !!(S.mid && g && !S.vsCpu), now = Date.now();
   return {
-    v: 7, nm: S.name, st: S.netSt, mid: S.vsCpu ? null : S.mid, go: S.go,
+    v: 8, nm: S.name, st: S.netSt, md: S.netMode, mid: S.vsCpu ? null : S.mid, go: S.go,
     b: inR ? g.encode() : null, sc: inR ? g.score : 0, cb: inR ? g.combo : 0, pm: inR ? Math.min(FULL, g.power) : 0, nx: inR ? g.nextKind() : null, bm: inR ? g.bombs : 0, fz: inR && g.frozen(now) ? 1 : 0,
     pw: inR ? S.pwOut.slice() : [], tg: inR && S.opp ? pkey(S.opp) : null,
     w: S.wins, de: S.myDe, lv: P.lv, rk: P.tr, sk: P.skin, vis: !document.hidden, hb
@@ -1937,7 +1979,7 @@ setInterval(() => flushPresence(Date.now()), 110);
 let readyKey = '', readySince = 0;
 function netTick(now) {
   if (!NET.room || !NET.me || S.mode !== 'search' || document.hidden) return;
-  const players = NET.peers.filter(p => p.kind === 'viewer' && p.presence && p.presence.v === 7 && !(typeof p.updatedAt === 'number' && now - p.updatedAt > 12000));
+  const players = NET.peers.filter(p => p.kind === 'viewer' && p.presence && p.presence.v === 8 && !(typeof p.updatedAt === 'number' && now - p.updatedAt > 12000));
   let best = null;
   for (const p of players) {
     const go = p.presence.go;
@@ -1945,12 +1987,12 @@ function netTick(now) {
     if (!best || p.peer < best.peer) best = p;
   }
   if (best) { startOnline(best.presence.go); return; }
-  const ids = new Set(players.filter(p => !p.sameTab && p.presence.st === 'wait' && p.presence.vis !== false).map(p => p.peer)); ids.add(NET.me);
+  const ids = new Set(players.filter(p => !p.sameTab && p.presence.st === 'wait' && p.presence.vis !== false && modeOf(p.presence) === S.netMode).map(p => p.peer)); ids.add(NET.me);
   const ready = [...ids].sort(), key = ready.join(',');
   if (key !== readyKey) { readyKey = key; readySince = now; }
   const pair = ready.slice(0, 2);
   if (pair.length === 2 && pair[0] === NET.me && now - readySince > 700) {
-    const go = { mid: 'r' + Math.random().toString(36).slice(2, 10), seed: Math.floor(Math.random() * 2147483647), pl: pair };
+    const go = { mid: 'r' + Math.random().toString(36).slice(2, 10), seed: Math.floor(Math.random() * 2147483647), pl: pair, md: S.netMode };
     S.go = go; startOnline(go);
   }
 }
@@ -1969,7 +2011,7 @@ async function initNet() {
 let lobbySig = '';
 function renderLobby() {
   const now = Date.now();
-  const others = NET.peers.filter(p => p.kind === 'viewer' && !p.sameTab && p.presence && p.presence.v === 7 && !(typeof p.updatedAt === 'number' && now - p.updatedAt > 12000));
+  const others = NET.peers.filter(p => p.kind === 'viewer' && !p.sameTab && p.presence && p.presence.v === 8 && !(typeof p.updatedAt === 'number' && now - p.updatedAt > 12000));
   const waiting = others.filter(p => p.presence.st === 'wait' && p.presence.vis !== false);
   const away = others.filter(p => p.presence.vis === false);
   const searching = S.mode === 'search';
@@ -1982,12 +2024,12 @@ function renderLobby() {
     msgT = waiting.length ? 'Starting…' : away.length ? (cleanName(away[0].presence.nm) || 'Your friend') + ' has the game in the background. It starts when they come back to it.' : PRIVATE ? 'The game starts the moment they open your link.' : HOSTED ? 'Waiting for another player. To play someone you know, tap Play a friend.' : "Waiting for someone to join. When your friend opens this page and taps Play online, you'll start right away.";
     btn = PRIVATE ? 'Waiting for your friend… (tap to stop)' : 'Looking for a player… (tap to stop)';
   }
-  else if (waiting.length) { msgT = cleanName(waiting[0].presence.nm) + ' is waiting for you!'; btn = 'Play ' + (cleanName(waiting[0].presence.nm) || 'now'); }
+  else if (waiting.length) { msgT = (cleanName(waiting[0].presence.nm) || 'Someone') + ' wants to play ' + (modeOf(waiting[0].presence) === 'c' ? 'Classic' : 'Battle') + '!'; btn = 'Play ' + (cleanName(waiting[0].presence.nm) || 'now'); }
   else if (others.length) { msgT = 'Tap Play online. The game starts when you both have tapped it.'; btn = 'Play online'; }
   else if (PRIVATE) { msgT = "Your friend isn't here yet. Send them the link above."; btn = 'Play online'; }
   else if (HOSTED) { msgT = 'Nobody else is waiting right now. Tap Play a friend to get a link you can text someone.'; btn = 'Play online'; }
   else { msgT = 'Nobody else is here right now. Send this page to a friend, then you both tap Play online.'; btn = 'Play online'; }
-  const rows = others.map(p => ({ name: cleanName(p.presence.nm) || 'Player', meta: metaOf(p.presence), st: String(p.presence.st || ''), other: p.isMe, away: p.presence.vis === false }));
+  const rows = others.map(p => ({ name: cleanName(p.presence.nm) || 'Player', meta: metaOf(p.presence), st: String(p.presence.st || ''), md: modeOf(p.presence), other: p.isMe, away: p.presence.vis === false }));
   const sig = JSON.stringify([rows, msgT, btn, NET.avail, !!NET.me, searching, linked]);
   if (sig === lobbySig) return; lobbySig = sig;
   log('lobby', msgT + ' | ' + btn + ' | others:' + others.length);
@@ -2001,7 +2043,7 @@ function renderLobby() {
     const m = document.createElement('span'); m.className = 'meta'; m.textContent = r.other ? 'your other tab' : r.meta; li.appendChild(m);
     const c = document.createElement('span');
     if (r.away) { c.className = 'chip'; c.textContent = 'Away'; }
-    else if (r.st === 'wait') { c.className = 'chip wait'; c.textContent = 'Wants to play'; }
+    else if (r.st === 'wait') { c.className = 'chip wait'; c.textContent = r.md === 'c' ? 'Wants Classic' : 'Wants Battle'; }
     else if (r.st === 'play' || r.st === 'dead' || r.st === 'done' || r.st === 'fin') { c.className = 'chip play'; c.textContent = 'In a game'; }
     else { c.className = 'chip'; c.textContent = 'Here'; }
     li.appendChild(c); ul.appendChild(li);
@@ -2134,11 +2176,13 @@ document.querySelectorAll('#cpuSeg button').forEach(b => {
   b.setAttribute('aria-pressed', String(b.dataset.lv === S.cpuLevel));
 });
 $('#cpuBtn').addEventListener('click', startCpu);
+document.querySelectorAll('#modeSeg button').forEach(b => b.addEventListener('click', () => { if (S.mode === 'search') return; setNetMode(b.dataset.md); renderLobby(); }));
+setNetMode(S.netMode);
 $('#classicBtn').addEventListener('click', () => startClassic(true));
 $('#classicNew').addEventListener('click', () => startClassic(false));
 $('#topStats').addEventListener('click', () => { const c = $('#rewardsCard'); if (c.scrollIntoView) c.scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'start' }); });
 $('#againBtn').addEventListener('click', () => {
-  if (S.classic) { startClassic(); return; }
+  if (S.classic && !S.duel) { startClassic(); return; }
   if (S.vsCpu) { startCpu(); return; }
   if (NET.avail !== 'yes') { toLobby(); return; }
   S.mode = 'search'; S.netSt = 'wait'; readySince = Date.now();
@@ -2232,6 +2276,11 @@ function frame(t) {
     if (!MUS.fast && left <= 30000) { MUS.fast = true; praise('', '30 seconds left!', 'gold'); }
     if (S.mode === 'play' && g && !g.dead) {
       if (S.vsCpu) { if (S.cpu && S.cpu.dead) endRound(true, 'stuck'); }
+      else if (S.duel) {
+        // online Classic: if they're out, passing their score wins it
+        const o = oppView(now);
+        if (o && !o.alive) { if (!o.here || !o.inM) endRound(true, 'left'); else if (g.score > o.sc) endRound(true, 'passed', o.sc); }
+      }
       else { const o = oppView(now); if (o && !o.alive) endRound(true, o.here && o.inM ? 'stuck' : 'left'); }
     }
     if (S.mode === 'play' && now >= S.roundEnd) timeUp(now);
@@ -2241,6 +2290,13 @@ function frame(t) {
     if (!o || !o.here) endRound(true, 'left');
     else if (o.inM && o.st === 'dead') endRound(true, 'stuck');
     else if ((o.inM && o.st === 'fin') || now - S.timeupAt > 6000) settle(o.sc);
+  }
+  // online Classic, you're out: they win by passing your score, you win if they get stuck below it
+  if (S.mode === 'duelwait') {
+    const o = oppView(now), my = S.game ? S.game.score : 0;
+    if (!o || !o.here || (!o.inM && now - S.roundStartedAt > 8000)) endRound(true, 'left');
+    else if (o.inM && o.sc > my) endRound(false, 'points', o.sc);
+    else if (o.inM && (o.st === 'dead' || o.st === 'done')) settle(o.sc);
   }
   if (S.mode === 'roundwait' && now >= S.waitUntil) {
     const o = oppView(now);
@@ -2263,13 +2319,13 @@ document.addEventListener('visibilitychange', () => {
   if (inRound()) { const f = MUS.fast; musicStart(); MUS.fast = f; }
   if (!hiddenAt) return;
   const wentAt = hiddenAt, away = Date.now() - wentAt; hiddenAt = 0;
-  if (S.vsCpu || S.classic) {
+  if (S.vsCpu || (S.classic && !S.duel)) {
     // the computer (and Classic) waits for you
     if (S.mode === 'play') { S.playStart += away; S.roundEnd += away; for (const g of [S.game, S.cpu]) if (g) { if (g.ice > wentAt) g.ice += away; g.lastAtk += away; } }
     else if (S.mode === 'countdown') S.countEnd += away;
     return;
   }
-  if (away > 10000 && S.mode === 'play' && S.game && !S.game.dead) S.game.die('left');
+  if (away > (S.duel ? 45000 : 10000) && S.mode === 'play' && S.game && !S.game.dead) S.game.die('left');
 });
 
 window.addEventListener('resize', layout);
