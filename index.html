@@ -278,6 +278,16 @@ canvas{display:block}
 .ofloat.cb{left:auto;right:12px;font-size:24px;color:#ff8fd0}
 @keyframes ofl{0%{opacity:0;transform:translateY(8px) scale(.6)}20%{opacity:1;transform:scale(1.15)}100%{opacity:0;transform:translateY(-26px)}}
 #dragCv{filter:drop-shadow(0 12px 10px rgba(5,8,40,.5));transform-origin:50% 50%}
+/* Classic: just you, no timer, no powers */
+#app.classic #oppCv,#app.classic .wins,#app.classic .clock,#app.classic .powers{display:none}
+#app.classic .opp{padding:8px 12px}
+#app.classic .me{grid-template-columns:1fr}
+#app.classic .scoreBox{align-items:center}
+#app.classic .score{font-size:46px}
+.card.classicCard{background:linear-gradient(135deg,rgba(64,190,110,.32),rgba(18,25,86,.82) 60%);box-shadow:inset 0 0 0 2px rgba(125,255,150,.28)}
+.bestLine{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.bestLine b{font-family:var(--disp);font-weight:700;font-size:22px;color:var(--gold)}
+.textBtn{border:0;background:none;color:var(--ink2);font-weight:800;font-size:15px;text-decoration:underline;padding:4px;align-self:center}
 
 @media (max-height:640px){
   .tray{height:90px}
@@ -307,7 +317,7 @@ canvas{display:block}
     </div>
     <div class="side">
       <div class="wins" id="wins"><small>Wins</small>0–0</div>
-      <div class="clock" id="clock">2:00</div>
+      <div class="clock" id="clock">3:00</div>
       <div class="icons">
         <button class="ico" id="sndBtn" aria-label="Sound on"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path id="sndWave" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg></button>
         <button class="ico" id="musBtn" aria-label="Music on"><svg viewBox="0 0 24 24"><path d="M9 17V5l10-2v12"/><circle cx="6.5" cy="17" r="2.5"/><circle cx="16.5" cy="15" r="2.5"/><path id="musX" d="M4 4l16 16"/></svg></button>
@@ -355,11 +365,19 @@ canvas{display:block}
       <div class="logo">
         <canvas id="logoCv" width="132" height="66" aria-hidden="true"></canvas>
         <h1>Garbage Day</h1>
-        <p>Block puzzle battle. Build combos, charge up powers, and mess up your friend's game.</p>
+        <p>Relax with Classic, or battle a friend with combos and powers.</p>
         <button class="topStats" id="topStats" aria-label="See your rewards"><span id="tsLv">Lv 1</span><span id="tsCoins">🪙 0</span><span id="tsRank">🏆 Bronze</span></button>
       </div>
 
+      <div class="card classicCard">
+        <div class="bestLine"><span class="lbl">Classic · just you, no timer</span><b id="bestTxt"></b></div>
+        <p class="note">Play at your own pace until you run out of room. You get one free second-chance bomb.</p>
+        <button class="big go" id="classicBtn">Play Classic</button>
+        <button class="textBtn" id="classicNew" hidden>Start a new game instead</button>
+      </div>
+
       <div class="card">
+        <span class="lbl">Battle online</span>
         <label class="lbl" for="nameInput">Your name</label>
         <input id="nameInput" maxlength="14" autocomplete="off" spellcheck="false">
         <div class="friendRoom" id="friendRoom" hidden>
@@ -376,7 +394,7 @@ canvas{display:block}
       </div>
 
       <div class="card">
-        <span class="lbl">Practice vs computer</span>
+        <span class="lbl">Battle the computer</span>
         <div class="seg" id="cpuSeg" role="group" aria-label="Computer difficulty">
           <button data-lv="easy" aria-pressed="true">Easy</button>
           <button data-lv="normal" aria-pressed="false">Normal</button>
@@ -413,10 +431,10 @@ canvas{display:block}
       <div class="card">
         <span class="lbl">How to play</span>
         <ol class="how">
-          <li><span class="n">1</span><div><b>Drag pieces onto your board</b><span>You get 3 at a time. Place all 3 to get 3 more.</span></div></li>
+          <li><span class="n">1</span><div><b>Drag pieces onto your board</b><span>You get 3 at a time. Place all 3 to get 3 more. In Classic that's all there is: play until nothing fits and beat your best score.</span></div></li>
           <li><span class="n">2</span><div><b>Clear lines and build combos</b><span>Fill a row or column to clear it. Clear again within 3 moves to keep your combo going. Combos multiply your points.</span></div></li>
-          <li><span class="n">3</span><div><b>Powers fire by themselves</b><span>Clears fill your power meter, and combos fill it faster. Every time it fills, the lit power goes off on its own, in this order: ❄️ Freeze (their pieces freeze for 5 seconds), 🌀 Scramble (their pieces turn big and ugly), then 💣 Bomb (saved for you, and if you get stuck it blows up a 3×3 spot so you can keep going).</span></div></li>
-          <li><span class="n">4</span><div><b>Win the round</b><span>Most points after 2:00 wins. If none of your pieces fit and you have no bomb saved, you lose right away.</span></div></li>
+          <li><span class="n">3</span><div><b>Powers fire by themselves</b><span>Clears fill your power meter, and combos fill it faster. Every time it fills, the lit power goes off on its own, in this order: ❄️ Freeze (their pieces freeze for 3 seconds), 🌀 Scramble (two of their pieces turn big), then 💣 Bomb (saved for you, and if you get stuck it blows up a 3×3 spot so you can keep going).</span></div></li>
+          <li><span class="n">4</span><div><b>Win the battle</b><span>Most points after 3:00 wins. If none of your pieces fit and you have no bomb saved, you lose right away.</span></div></li>
           <li><span class="n">5</span><div><b>Earn rewards</b><span>Every game gives coins, XP and a reward chest to open (wins get the best chest). Combos of x2 and up drop extra coins. Spend coins on block skins. Online wins also earn trophies and raise your rank.</span></div></li>
         </ol>
       </div>
@@ -430,7 +448,7 @@ canvas{display:block}
       <div class="stats">
         <div><b id="rsScore">0</b><span>Score</span></div>
         <div><b id="rsCombo">0</b><span>Best combo</span></div>
-        <div><b id="rsPowers">0</b><span>Powers used</span></div>
+        <div><b id="rsPowers">0</b><span id="rsPowersLbl">Powers used</span></div>
       </div>
       <div class="chest" id="chest">
         <button class="chestBtn" id="chestBtn" aria-label="Open your reward chest"><i class="rays"></i><span class="cem" id="chestEm">🎁</span></button>
@@ -459,13 +477,16 @@ const log = (k, m) => { if (window.__gdLog) window.__gdLog(k, m); };
 
 /* ================= rules ================= */
 const N = 8;
-const ROUND_MS = 120000;       // a round lasts 2 minutes; most points wins
+const ROUND_MS = 180000;       // a battle lasts 3 minutes; most points wins
 const COMBO_MOVES = 3;         // clear again within this many moves to keep a combo alive
-const FULL = 100, MAX_POWER = 200, FREEZE_MS = 5000;
-const AUTO_GAP = 8000;         // at least 8 seconds between automatic attacks
+const FULL = 100, MAX_POWER = 200, FREEZE_MS = 3000;
+const AUTO_GAP = 12000;        // at least 12 seconds between automatic attacks
 const CYCLE = ['freeze', 'scramble', 'bomb'];   // what a full meter fires, in turn
 const MAX_BOMBS = 2;
-const START_POWER = 50;        // every round starts with the power meter half full
+const START_POWER = 30;        // every battle starts with the power meter a bit charged
+const HELPFUL = .3;            // how often a new set includes a piece that can finish a line
+const CLASSIC_HELPFUL = .45;   // Classic is a bit kinder still...
+const RAMP_MOVES = 360;        // ...but gets tougher bit by bit until about this many moves
 function shape(cells, w) { const xs = cells.map(c => c[0]), ys = cells.map(c => c[1]); return { c: cells, w: Math.max(...xs) + 1, h: Math.max(...ys) + 1, wt: w }; }
 const SHAPES = [
   shape([[0,0]], 2),
@@ -497,17 +518,36 @@ class Board {
     this.b = new Uint8Array(N * N); this.rng = mulberry32(seed >>> 0);
     this.score = 0; this.combo = 0; this.comboLeft = 0; this.bestCombo = 0; this.lines = 0; this.moves = 0;
     this.power = 0; this.used = 0; this.ice = 0; this.dead = false; this.reason = ''; this.onDead = null;
-    this.fills = 0; this.bombs = 0; this.lastAtk = 0; this.chargeMul = 1; this.cc = 0;
+    this.fills = 0; this.bombs = 0; this.lastAtk = 0; this.chargeMul = 1; this.cc = 0; this.ccCap = COMBO_COIN_CAP; this.helpful = HELPFUL;
     this.tray = []; this.deal();
   }
   gen() { let r = this.rng() * TOTALW; for (const s of SHAPES) { r -= s.wt; if (r <= 0) return { s, v: 1 + Math.floor(this.rng() * 8) }; } return { s: SHAPES[0], v: 1 }; }
+  // Deal like Block Blast: most of the time all 3 pieces can be placed one after another,
+  // and often one of them can finish a line right away
   deal() {
-    this.tray = [this.gen(), this.gen(), this.gen()];
+    // in Classic it slowly gets less forgiving the longer you last, so great runs still end someday
+    const lvl = this.ramp ? Math.min(1, this.moves / RAMP_MOVES) : 0, tries = Math.round(12 - 11 * lvl), help = this.helpful * (1 - .75 * lvl);
+    let pick = null;
+    for (let k = 0; k < tries && !pick; k++) {
+      const set = [this.gen(), this.gen(), this.gen()];
+      if (this.rng() < help) { const h = this.helper(); if (h) set[Math.floor(this.rng() * 3)] = h; }
+      if (placeAll(this.b, set)) pick = set;
+    }
+    this.tray = pick || [this.gen(), this.gen(), this.gen()];
     // a fresh set always has at least one piece that fits
     if (!this.pieceFits()) {
       for (let k = 0; k < 30; k++) { const p = this.gen(); if (this.anyFit(p)) { this.tray[0] = p; return; } }
       for (const s of SHAPES) { const p = { s, v: this.tray[0].v }; if (this.anyFit(p)) { this.tray[0] = p; return; } }
     }
+  }
+  // a piece that would clear at least one line somewhere right now
+  helper() {
+    const start = Math.floor(this.rng() * SHAPES.length), v = 1 + Math.floor(this.rng() * 8);
+    for (let j = 0; j < SHAPES.length; j++) {
+      const p = { s: SHAPES[(start + j) % SHAPES.length], v };
+      for (let y = 0; y <= N - p.s.h; y++) for (let x = 0; x <= N - p.s.w; x++) if (this.fits(p, x, y) && simPlace(this.b, p, x, y).n) return p;
+    }
+    return null;
   }
   fits(p, x, y) { for (const [cx, cy] of p.s.c) { const X = x + cx, Y = y + cy; if (X < 0 || Y < 0 || X >= N || Y >= N || this.b[Y * N + X]) return false; } return true; }
   anyFit(p) { for (let y = 0; y <= N - p.s.h; y++) for (let x = 0; x <= N - p.s.w; x++) if (this.fits(p, x, y)) return true; return false; }
@@ -538,7 +578,7 @@ class Board {
       gain += lineScore(n) * this.combo + (pc ? 3000 : 0);
       charge += n * 20 * Math.min(this.combo, 3) + (pc ? 40 : 0);
       // combos of x2 and up drop coins: 2 at x2, 4 at x3, 6 at x4 ...
-      if (this.combo >= 2) { coins = Math.max(0, Math.min(2 * (this.combo - 1), COMBO_COIN_CAP - this.cc)); this.cc += coins; }
+      if (this.combo >= 2) { coins = Math.max(0, Math.min(2 * (this.combo - 1), this.ccCap - this.cc)); this.cc += coins; }
     } else if (this.combo && --this.comboLeft <= 0) { this.combo = 0; this.comboLeft = 0; }
     this.power = Math.min(MAX_POWER, this.power + Math.round(charge * this.chargeMul));
     this.score += gain;
@@ -570,8 +610,10 @@ class Board {
     return kind;
   }
   freeze(now) { this.ice = Math.min(now + 10000, Math.max(this.ice, now) + FREEZE_MS); }
+  // two of your pieces (not all three) turn into big ones
   scramble() {
-    for (let i = 0; i < 3; i++) if (this.tray[i]) this.tray[i] = { s: UGLY[Math.floor(Math.random() * UGLY.length)], v: 1 + Math.floor(Math.random() * 8) };
+    const have = [0, 1, 2].filter(i => this.tray[i]).sort(() => Math.random() - .5).slice(0, 2);
+    for (const i of have) this.tray[i] = { s: UGLY[Math.floor(Math.random() * UGLY.length)], v: 1 + Math.floor(Math.random() * 8) };
     // to keep it fair, one of the new pieces always fits somewhere
     if (!this.pieceFits()) {
       const i = this.tray.findIndex(Boolean);
@@ -589,6 +631,31 @@ function fullLines(b) {
   return { rows, cols };
 }
 function filled(b) { let n = 0; for (let k = 0; k < b.length; k++) if (b[k]) n++; return n; }
+// can these pieces all be placed one after another, in some order?
+const ORDERS = [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]];
+function placeAll(b, set) {
+  for (const o of ORDERS) {
+    let bb = b;
+    for (const i of o) { bb = snugSpot(bb, set[i]); if (!bb) break; }
+    if (bb) return true;
+  }
+  return false;
+}
+// where a sensible player would likely put a piece: clears first, then tucked against other blocks
+function snugSpot(b, p) {
+  let best = null, bestV = -1;
+  for (let y = 0; y <= N - p.s.h; y++) for (let x = 0; x <= N - p.s.w; x++) {
+    let ok = true, v = 0;
+    for (const [cx, cy] of p.s.c) {
+      const X = x + cx, Y = y + cy; if (b[Y * N + X]) { ok = false; break; }
+      v += (X === 0 || b[Y * N + X - 1] ? 1 : 0) + (X === N - 1 || b[Y * N + X + 1] ? 1 : 0) + (Y === 0 || b[(Y - 1) * N + X] ? 1 : 0) + (Y === N - 1 || b[(Y + 1) * N + X] ? 1 : 0);
+    }
+    if (!ok) continue;
+    const r = simPlace(b, p, x, y); v += r.n * 40;
+    if (v > bestV) { bestV = v; best = r.b2; }
+  }
+  return best;
+}
 function densest3(b) {
   let best = { x: 0, y: 0, n: -1 };
   for (let y = 0; y <= N - 3; y++) for (let x = 0; x <= N - 3; x++) {
@@ -827,7 +894,7 @@ function musicStep(n, t, e) {
 }
 function musicTick() {
   const c = SND.ctx; if (!c || !MUS.playing) return;
-  const e = 60 / (MUS.fast ? 138 : 114) / 2;
+  const e = 60 / (MUS.fast ? 138 : S.classic ? 100 : 114) / 2;
   if (MUS.next < c.currentTime) MUS.next = c.currentTime + .05;
   while (MUS.next < c.currentTime + .15) { if (SND.on && SND.music) musicStep(MUS.step, MUS.next, e); MUS.step++; MUS.next += e; }
 }
@@ -868,9 +935,9 @@ function xpNeed(lv) { return 80 + lv * 40; }
 function today() { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
 function loadProfile() {
   let p = null; try { p = JSON.parse(load('gd_prof') || 'null'); } catch (e) { p = null; }
-  const o = { coins: 0, xp: 0, lv: 1, tr: 0, skin: 'classic', own: ['classic'], streak: 0, day: '', games: 0, wins: 0 };
+  const o = { coins: 0, xp: 0, lv: 1, tr: 0, skin: 'classic', own: ['classic'], streak: 0, day: '', games: 0, wins: 0, best: 0 };
   if (!p || typeof p !== 'object') return o;
-  for (const k of ['coins', 'xp', 'tr', 'streak', 'games', 'wins']) o[k] = num(p[k]);
+  for (const k of ['coins', 'xp', 'tr', 'streak', 'games', 'wins', 'best']) o[k] = num(p[k]);
   o.lv = Math.max(1, num(p.lv));
   o.day = typeof p.day === 'string' ? p.day.slice(0, 12) : '';
   o.own = Array.isArray(p.own) ? p.own.filter(id => SKINS.some(s => s.id === id)) : [];
@@ -983,7 +1050,9 @@ function drawBoard(now, dt) {
       const x = p + (k % N) * c, y = p + ((k / N) | 0) * c;
       const pop = POPS.find(d => d.k === k), pt = pop ? now - pop.t0 : 999;
       const sc = pop ? 1 + .18 * Math.sin(Math.min(1, pt / 180) * Math.PI) : 1;
-      block(ctx, lit.has(k) ? col(drag.p.v) : col(v), x, y, c, 1, sc);
+      // when a game ends the blocks turn gray in a wave from the top down
+      const gray = g.dead && S.deadAt && now - S.deadAt > ((k / N) | 0) * 70;
+      block(ctx, gray ? '#5d6696' : lit.has(k) ? col(drag.p.v) : col(v), x, y, c, 1, sc);
       // a quick white flash as a piece lands
       if (pt < 170) { ctx.globalAlpha = .6 * (1 - pt / 170); ctx.fillStyle = '#fff'; rr(ctx, x + 2, y + 2, c - 4, c - 4, c * .14); ctx.fill(); ctx.globalAlpha = 1; }
     }
@@ -1288,7 +1357,7 @@ function renderHud(now, o) {
   let fill = 0; if (g) for (let k = 0; k < N * N; k++) if (g.b[k]) fill++;
   const danger = !!g && S.mode === 'play' && !g.dead && fill >= 40;
   if (hud.dg !== danger) { hud.dg = danger; $('#boardWrap').classList.toggle('danger', danger); }
-  if (danger && now > (S.beatAt || 0)) { S.beatAt = now + 1150; sfx.heart(); }
+  if (danger && !S.classic && now > (S.beatAt || 0)) { S.beatAt = now + 1150; sfx.heart(); }
   // the line under your score
   let hint = '', cls = '';
   if (S.mode === 'countdown') hint = 'Get ready!';
@@ -1298,15 +1367,23 @@ function renderHud(now, o) {
   else if (S.hintNote && now < S.hintNote.until) { hint = S.hintNote.t; cls = 'warn'; }
   else if (g.frozen(now)) { hint = 'Frozen! Your pieces thaw in ' + Math.ceil((g.ice - now) / 1000) + 's'; cls = 'ice'; }
   else if (danger && !cb) { hint = 'Running out of room! Clear some lines.'; cls = 'danger'; }
-  else if (g.moves < 4 && !g.fills) { hint = 'Clears fill your meter. Full = automatic power!'; }
+  else if (S.classic && g.moves < 4 && !g.lines) hint = 'Fill a whole row or column to clear it.';
+  else if (!S.classic && g.moves < 4 && !g.fills) { hint = 'Clears fill your meter. Full = automatic power!'; }
   else if (cb > 0) hint = 'Combo x' + cb + ': clear again within ' + cl + (cl === 1 ? ' move!' : ' moves');
   else if (g.moves === 0) hint = 'Drag a piece onto the board.';
   else hint = 'Clear lines to score and charge your powers.';
   setText($('#hint'), 'hint', hint);
   if (hud.hcls !== cls) { hud.hcls = cls; $('#hint').className = 'hint' + (cls ? ' ' + cls : ''); }
   // opponent card
-  setText($('#oppName'), 'on', o ? o.name : (S.mode === 'lobby' ? 'Opponent' : 'Waiting…'));
-  setText($('#oppLine'), 'ol', o ? fmtN(o.sc) + ' pts' + (o.meta ? ' · ' + o.meta : '') : '');
+  if (S.classic) {
+    // Classic: the top card shows your best score instead of an opponent
+    setText($('#oppName'), 'on', 'Classic');
+    const bst = Math.max(P.best || 0, S.newBest && g ? g.score : 0);
+    setText($('#oppLine'), 'ol', bst ? 'Best ' + fmtN(bst) : 'No best score yet');
+  } else {
+    setText($('#oppName'), 'on', o ? o.name : (S.mode === 'lobby' ? 'Opponent' : 'Waiting…'));
+    setText($('#oppLine'), 'ol', o ? fmtN(o.sc) + ' pts' + (o.meta ? ' · ' + o.meta : '') : '');
+  }
   let oi = '', ocls = '';
   if (o && live) {
     if (!o.alive) { oi = 'Out of room!'; ocls = 'out'; }
@@ -1322,6 +1399,12 @@ function renderHud(now, o) {
     if (S.lastOppSc != null && o.sc - S.lastOppSc >= 100) oppFloat('+' + fmtN(o.sc - S.lastOppSc), '');
     S.lastOppCb = o.cb; S.lastOppSc = o.sc;
   }
+  // Classic: the card shows whether your free bomb is still waiting
+  if (S.classic && live && g) {
+    if (S.oppNote && now < S.oppNote.until) { oi = S.oppNote.t; ocls = 'hot'; }
+    else if (g.bombs > 0) { oi = '\ud83d\udca3 Second chance ready'; ocls = ''; }
+    else { oi = 'Second chance used'; ocls = ''; }
+  }
   // and their card glows red when they're nearly out of room
   let ofill = 0; if (o && o.b) for (let k = 0; k < o.b.length; k++) if (o.b.charCodeAt(k) > 48) ofill++;
   const od = !!o && live && o.alive && ofill >= 40;
@@ -1334,7 +1417,7 @@ function renderHud(now, o) {
   const wk = (S.vsCpu ? S.cpuWins : S.wins) + '–' + (o ? o.w : 0);
   if (hud.wk !== wk) { hud.wk = wk; const w = $('#wins'); w.textContent = ''; const s = document.createElement('small'); s.textContent = 'Wins'; w.append(s, wk); }
   let ckT = fmt(ROUND_MS), low = false;
-  if (S.mode === 'play') { const left = S.roundEnd - now; ckT = fmt(left); low = left <= 10000; }
+  if (S.mode === 'play' && !S.classic) { const left = S.roundEnd - now; ckT = fmt(left); low = left <= 10000; }
   else if (S.mode === 'timeup' || S.mode === 'over' || S.mode === 'roundwait') ckT = hud.ckT || ckT;
   setText($('#clock'), 'ckT', ckT);
   if (hud.low !== low) { hud.low = low; $('#clock').classList.toggle('low', low); }
@@ -1351,7 +1434,7 @@ function oppView(now) {
   const stale = !!peer && typeof peer.updatedAt === 'number' && now - peer.updatedAt > 12000;
   if (peer && !stale) { S.seen = now; S.lastPr = peer.presence || {}; }
   const pr = S.lastPr || {}, here = (!!peer && !stale) || now - S.seen < 4000, inM = !!S.mid && pr.mid === S.mid;
-  // 'fin' means their 2 minutes are up and they're waiting on the result, which still counts as in the game
+  // 'fin' means their 3 minutes are up and they're waiting on the result, which still counts as in the game
   const alive = here && (inM ? (pr.st === 'play' || pr.st === 'fin') : now - S.roundStartedAt < 8000);
   return {
     id: S.opp, name: cleanName(pr.nm) || 'Player', b: inM && typeof pr.b === 'string' ? pr.b : '', sc: inM ? num(pr.sc) : 0,
@@ -1403,12 +1486,19 @@ function afterPlace(info) {
   } else if (info.broke) { sfx.broke(); praise('', 'Combo lost', 'red'); }
   floatPts('+' + fmtN(info.gain), p + (info.x + info.p.s.w / 2) * c, p + (info.y + info.p.s.h / 2) * c, !info.n ? '' : cb >= 5 ? 't5' : cb >= 3 ? 't3' : cb >= 2 || info.n >= 2 ? 't2' : '');
   if (info.saves && info.saves.length) setTimeout(() => info.saves.forEach(sv => afterBomb(sv)), 350);
+  // Classic: passing your best score is a moment
+  const g = S.game;
+  if (S.classic) saveClassic();
+  if (S.classic && g && !S.newBest && S.bestAtStart > 0 && g.score > S.bestAtStart) {
+    S.newBest = true; oppNote('🎉 New best score!', 3000);
+    setTimeout(() => { if (S.mode !== 'play') return; sfx.levelUp(); praise('New best!', '', 'gold'); confetti(fxW * .5, fxH * .25, 70, 3); }, 500);
+  }
 }
 function afterBomb(info) {
   const c = L.cell, p = L.pad, now = Date.now(), cx = p + (info.x + 1.5) * c, cy = p + (info.y + 1.5) * c, fuse = REDUCED ? 0 : 700;
   // the blocks stay put while the fuse burns, then blow away
   for (const cl of info.cleared) CLEARS.push({ k: cl.k, col: col(cl.v), t0: now, delay: fuse + Math.random() * 60 });
-  if (fuse) { BOMBS.push({ x: cx, y: cy, t0: now, dur: fuse, area: [p + info.x * c, p + info.y * c, 3 * c] }); sfx.fuse(); praise('', '\ud83d\udca3 Your bomb is going off!', 'gold'); }
+  if (fuse) { BOMBS.push({ x: cx, y: cy, t0: now, dur: fuse, area: [p + info.x * c, p + info.y * c, 3 * c] }); sfx.fuse(); praise('', S.classic ? '\ud83d\udca3 Second chance!' : '\ud83d\udca3 Your bomb is going off!', 'gold'); }
   sendPower('bomb');
   setTimeout(() => {
     sfx.boom(); kick(18); buzz([40, 30, 90]);
@@ -1417,7 +1507,7 @@ function afterBomb(info) {
     burst(cx, cy, '#ffd234', 30, .45, 950); burst(cx, cy, '#ff4f63', 22, .36, 850); burst(cx, cy, '#ffffff', 10, .5, 500);
     const t = Date.now();
     RINGS.push({ x: cx, y: cy, r: c * 4.2, w: 10, c: '#ffd234', t0: t, dur: 520 }, { x: cx, y: cy, r: c * 3, w: 6, c: '#ffffff', t0: t + 80, dur: 420 });
-    praise('BOOM!', 'Your bomb saved you!', 'red');
+    praise('BOOM!', S.classic ? 'Keep going!' : 'Your bomb saved you!', 'red');
   }, fuse);
 }
 // your meter filled: the next power goes off on its own
@@ -1473,17 +1563,50 @@ function resetFx() { PARTS.length = 0; POPS.length = 0; CLEARS.length = 0; RINGS
 let countShown = null;
 function beginCountdown() {
   resetFx();
-  S.mode = 'countdown'; S.countEnd = Date.now() + 3000; S.roundStartedAt = Date.now();
-  S.myDe = null; S.myReason = ''; S.oppNote = null; S.hintNote = null; S.lastOppCb = 0;
-  countShown = null; $('#count').textContent = '3';
+  // Classic skips the 3-2-1 and goes straight to GO
+  S.mode = 'countdown'; S.countEnd = Date.now() + (S.classic ? 0 : 3000); S.roundStartedAt = Date.now();
+  S.myDe = null; S.myReason = ''; S.oppNote = null; S.hintNote = null; S.lastOppCb = 0; S.lastOppSc = null; S.deadAt = 0;
+  countShown = null; $('#count').textContent = S.classic ? '' : '3';
   hideScreens(); $('#count').hidden = false; hud = {};
+  $('#app').classList.toggle('classic', !!S.classic);
   requestAnimationFrame(layout); keepAwake();
   musicStop(); musicStart();
 }
+// Classic: just you, no timer, no attacks, one free bomb if you get stuck
+function startClassic(resume) {
+  if (S.mode === 'countdown' || S.mode === 'play' || S.mode === 'timeup') return;
+  audioInit();
+  S.classic = true; S.vsCpu = false; S.cpu = null; S.mid = null; S.go = null; S.opp = null; S.netSt = 'lobby';
+  const g = makeGame(Math.floor(Math.random() * 2147483647), true);
+  g.power = 0; g.chargeMul = 0; g.bombs = 1; g.helpful = CLASSIC_HELPFUL; g.ramp = true; g.ccCap = 40;
+  const d = resume === true ? loadClassic() : null;
+  if (d) {
+    // pick up the saved game right where you left it
+    for (let k = 0; k < N * N; k++) g.b[k] = Math.max(0, Math.min(8, d.b.charCodeAt(k) - 48));
+    g.tray = d.t.map(x => x && SHAPES[x[0]] ? { s: SHAPES[x[0]], v: Math.max(1, Math.min(8, num(x[1]))) } : null);
+    if (!g.tray.some(Boolean)) g.deal();
+    g.score = num(d.sc); g.combo = num(d.cb); g.comboLeft = num(d.cl); g.bestCombo = num(d.bc); g.moves = num(d.mv); g.lines = num(d.ln); g.bombs = Math.min(1, num(d.bm)); g.cc = num(d.cc);
+    S.bestAtStart = num(d.ba); S.newBest = !!d.nb;
+  } else { clearClassic(); g.deal(); S.bestAtStart = P.best || 0; S.newBest = false; }
+  S.game = g;
+  beginCountdown();
+}
+// a Classic game in progress is saved after every move, so leaving or a reload doesn't lose it
+const SAVE_KEY = 'gd_classic';
+function saveClassic() {
+  const g = S.game; if (!S.classic || !g || g.dead || S.mode !== 'play') return;
+  const t = g.tray.map(p => p ? [SHAPES.indexOf(p.s), p.v] : null);
+  if (t.some(x => x && x[0] < 0)) return;
+  store(SAVE_KEY, JSON.stringify({ b: g.encode(), t, sc: g.score, cb: g.combo, cl: g.comboLeft, bc: g.bestCombo, mv: g.moves, ln: g.lines, bm: g.bombs, cc: g.cc, ba: S.bestAtStart, nb: S.newBest }));
+}
+function loadClassic() {
+  try { const d = JSON.parse(load(SAVE_KEY) || 'null'); return d && typeof d.b === 'string' && d.b.length === N * N && Array.isArray(d.t) && d.t.length === 3 ? d : null; } catch (e) { return null; }
+}
+function clearClassic() { store(SAVE_KEY, ''); }
 function startCpu() {
   if (S.mode === 'countdown' || S.mode === 'play' || S.mode === 'timeup') return;
   audioInit();
-  S.vsCpu = true; S.mid = null; S.go = null; S.opp = null; S.netSt = 'lobby';
+  S.classic = false; S.vsCpu = true; S.mid = null; S.go = null; S.opp = null; S.netSt = 'lobby';
   const seed = Math.floor(Math.random() * 2147483647);
   S.game = makeGame(seed, true); S.cpu = makeGame(seed, false); S.cpuT = 2200;
   S.cpu.chargeMul = CPU[S.cpuLevel].charge;
@@ -1492,7 +1615,7 @@ function startCpu() {
 function startOnline(go) {
   log('start', go.mid);
   S.usedMids.add(go.mid);
-  S.vsCpu = false; S.cpu = null; S.mid = go.mid; S.opp = go.pl.find(p => p !== NET.me) || null;
+  S.classic = false; S.vsCpu = false; S.cpu = null; S.mid = go.mid; S.opp = go.pl.find(p => p !== NET.me) || null;
   S.netSt = 'play'; S.seen = Date.now(); S.lastPr = {};
   S.pwOut = []; S.pwSeq = 0; S.pwIn = 0;
   S.game = makeGame(Number(go.seed) >>> 0, true);
@@ -1500,13 +1623,15 @@ function startOnline(go) {
 }
 function onMyDeath(reason) {
   if (S.mode !== 'play') return;
+  S.deadAt = Date.now(); if (S.classic) clearClassic();
   kick(10); buzz([60, 40, 120]);
   S.myDe = Math.round(Date.now() - S.playStart); S.myReason = reason;
   drag = null; cvD.hidden = true;
+  if (S.classic) { endClassic(); return; }
   if (S.vsCpu) { endRound(false, reason); return; }
   S.netSt = 'dead'; S.mode = 'roundwait'; S.waitUntil = Date.now() + 900;
 }
-// the 2 minutes ran out: stop moving, then compare final scores
+// the 3 minutes ran out: stop moving, then compare final scores
 function timeUp(now) {
   S.mode = 'timeup'; S.timeupAt = now; drag = null; cvD.hidden = true;
   praise('Time!', '', 'gold'); sfx.go();
@@ -1542,18 +1667,49 @@ function endRound(meWon, reason, theirScore) {
     $('#resSub').textContent = why;
     $('#rsScore').textContent = fmtN(my);
     $('#rsCombo').textContent = g && g.bestCombo ? 'x' + g.bestCombo : '–';
-    $('#rsPowers').textContent = g ? g.used : 0;
+    $('#rsPowers').textContent = g ? g.used : 0; $('#rsPowersLbl').textContent = 'Powers used';
     $('#againBtn').textContent = 'Play again'; $('#againBtn').classList.remove('searching'); $('#againBtn').disabled = false;
     $('#result').hidden = false; $('#result').scrollTop = 0;
     showRewards(rw);
     if (meWon === true) { confetti(fxW * .25, fxH * .3, 45, 2.4); confetti(fxW * .75, fxH * .3, 45, 2.4); }
   }, 1400);
 }
+// a Classic game ends when nothing fits (and the free bomb is used up)
+function endClassic() {
+  if (S.mode === 'over') return;
+  S.mode = 'over'; musicStop(); drag = null; cvD.hidden = true;
+  const g = S.game, sc = g ? g.score : 0, isBest = sc > 0 && sc > (S.bestAtStart || 0);
+  if (isBest) { P.best = sc; sfx.win(); praise('New best!', '', 'gold'); }
+  else { sfx.lose(); praise('Out of room', '', ''); }
+  const rw = grantRewards(isBest ? true : null, g);
+  setTimeout(() => {
+    if (S.mode !== 'over') return;
+    const t = $('#resTitle');
+    t.textContent = isBest ? 'New best!' : 'Nice game!';
+    t.classList.toggle('lose', false); t.classList.toggle('tie', !isBest);
+    $('#resSub').textContent = isBest ? (S.bestAtStart ? 'You beat your old best of ' + fmtN(S.bestAtStart) + '!' : 'Your first Classic score!') : 'No more room. Your best is ' + fmtN(P.best) + '.';
+    $('#rsScore').textContent = fmtN(sc);
+    $('#rsCombo').textContent = g && g.bestCombo ? 'x' + g.bestCombo : '–';
+    $('#rsPowers').textContent = fmtN(P.best); $('#rsPowersLbl').textContent = 'Best score';
+    $('#againBtn').textContent = 'Play again'; $('#againBtn').classList.remove('searching'); $('#againBtn').disabled = false;
+    $('#result').hidden = false; $('#result').scrollTop = 0;
+    showRewards(rw);
+    if (isBest) { confetti(fxW * .25, fxH * .3, 45, 2.4); confetti(fxW * .75, fxH * .3, 45, 2.4); }
+  }, 1300);
+}
 function grantRewards(res, g) {
-  const online = !S.vsCpu, out = [], score = g ? g.score : 0, trBefore = P.tr, lv0 = P.lv, xp0 = P.xp, coins0 = P.coins;
-  let coins = online ? (res === true ? 40 : res === null ? 20 : 15) : (res === true ? ({ easy: 10, normal: 20, hard: 30 })[S.cpuLevel] : res === null ? 8 : 5);
-  out.push({ ic: '🪙', t: (res === true ? 'Win' : res === null ? 'Tie' : 'Played a game') + (online ? ' online' : ' vs computer'), a: coins, u: 'coins' });
-  const bc = g ? g.bestCombo : 0, cc = g ? Math.min(COMBO_COIN_CAP, g.cc || 0) : 0;
+  const classic = !!S.classic, online = !S.vsCpu && !classic, out = [], score = g ? g.score : 0, trBefore = P.tr, lv0 = P.lv, xp0 = P.xp, coins0 = P.coins;
+  let coins;
+  if (classic) {
+    // Classic pays by score; res is true for a new best
+    coins = 5 + Math.min(30, Math.floor(score / 2500));
+    out.push({ ic: '🪙', t: 'Classic game (' + fmtN(score) + ' pts)', a: coins, u: 'coins' });
+    if (res === true && S.bestAtStart) { coins += 20; out.push({ ic: '🏅', t: 'New best score!', a: 20, u: 'coins', big: true }); }
+  } else {
+    coins = online ? (res === true ? 40 : res === null ? 20 : 15) : (res === true ? ({ easy: 10, normal: 20, hard: 30 })[S.cpuLevel] : res === null ? 8 : 5);
+    out.push({ ic: '🪙', t: (res === true ? 'Win' : res === null ? 'Tie' : 'Played a game') + (online ? ' online' : ' vs computer'), a: coins, u: 'coins' });
+  }
+  const bc = g ? g.bestCombo : 0, cc = g ? Math.min(g.ccCap || COMBO_COIN_CAP, g.cc || 0) : 0;
   if (cc > 0) { coins += cc; out.push({ ic: '🔥', t: 'Combo coins (best x' + bc + ')', a: cc, u: 'coins' }); }
   if (online) {
     if (res === true) {
@@ -1571,8 +1727,8 @@ function grantRewards(res, g) {
   const jackpot = Math.random() < (tier === 2 ? .1 : .04);
   if (jackpot) chest *= 3;
   if (online) chest *= 2;
-  P.coins += coins + chest; P.games++; if (res === true) P.wins++;
-  const xp = online ? 40 + Math.min(60, Math.floor(score / 500)) : 15 + Math.min(30, Math.floor(score / 1000));
+  P.coins += coins + chest; P.games++; if (res === true && !classic) P.wins++;
+  const xp = classic ? 10 + Math.min(50, Math.floor(score / 2000)) : online ? 40 + Math.min(60, Math.floor(score / 500)) : 15 + Math.min(30, Math.floor(score / 1000));
   P.xp += xp; out.push({ ic: '⭐', t: 'Experience', a: xp, u: 'XP' });
   let ups = 0;
   while (P.xp >= xpNeed(P.lv)) { P.xp -= xpNeed(P.lv); P.lv++; ups++; P.coins += 25; }
@@ -1614,7 +1770,7 @@ function showRewards(rw) {
   const ch = $('#chest'), btn = $('#chestBtn');
   ch.className = 'chest t' + rw.tier; btn.disabled = false; btn.classList.remove('rattle');
   $('#chestEm').textContent = '🎁';
-  $('#chestTxt').textContent = (rw.tier === 2 ? 'Winner’s chest! ' : '') + 'Tap to open';
+  $('#chestTxt').textContent = (rw.tier === 2 ? (S.classic ? 'Best-score chest! ' : 'Winner’s chest! ') : '') + 'Tap to open';
   let rowCoins = 0, last = 0;
   rw.out.forEach((r, i) => {
     const delay = 250 + i * 260; last = delay;
@@ -1675,7 +1831,8 @@ function openChest() {
 }
 $('#chestBtn').addEventListener('click', openChest);
 function toLobby() {
-  S.mode = 'lobby'; S.mid = null; S.go = null; S.opp = null; S.cpu = null; S.game = null; S.vsCpu = false; S.netSt = 'lobby';
+  S.mode = 'lobby'; S.mid = null; S.go = null; S.opp = null; S.cpu = null; S.game = null; S.vsCpu = false; S.classic = false; S.netSt = 'lobby';
+  $('#app').classList.remove('classic');
   resetFx(); hideScreens(); $('#count').hidden = true; $('#lobby').hidden = false; musicStop();
   if (wakeLock) { try { wakeLock.release(); } catch (e) {} wakeLock = null; }
   hud = {}; lobbySig = ''; renderLobby(); renderProfile(); draw(Date.now());
@@ -1762,7 +1919,7 @@ setInterval(() => { hb = (hb + 1) % 1000; }, 2000);
 function presenceState() {
   const g = S.game, inR = !!(S.mid && g && !S.vsCpu), now = Date.now();
   return {
-    v: 6, nm: S.name, st: S.netSt, mid: S.vsCpu ? null : S.mid, go: S.go,
+    v: 7, nm: S.name, st: S.netSt, mid: S.vsCpu ? null : S.mid, go: S.go,
     b: inR ? g.encode() : null, sc: inR ? g.score : 0, cb: inR ? g.combo : 0, pm: inR ? Math.min(FULL, g.power) : 0, nx: inR ? g.nextKind() : null, bm: inR ? g.bombs : 0, fz: inR && g.frozen(now) ? 1 : 0,
     pw: inR ? S.pwOut.slice() : [], tg: inR && S.opp ? pkey(S.opp) : null,
     w: S.wins, de: S.myDe, lv: P.lv, rk: P.tr, sk: P.skin, vis: !document.hidden, hb
@@ -1780,7 +1937,7 @@ setInterval(() => flushPresence(Date.now()), 110);
 let readyKey = '', readySince = 0;
 function netTick(now) {
   if (!NET.room || !NET.me || S.mode !== 'search' || document.hidden) return;
-  const players = NET.peers.filter(p => p.kind === 'viewer' && p.presence && p.presence.v === 6 && !(typeof p.updatedAt === 'number' && now - p.updatedAt > 12000));
+  const players = NET.peers.filter(p => p.kind === 'viewer' && p.presence && p.presence.v === 7 && !(typeof p.updatedAt === 'number' && now - p.updatedAt > 12000));
   let best = null;
   for (const p of players) {
     const go = p.presence.go;
@@ -1812,7 +1969,7 @@ async function initNet() {
 let lobbySig = '';
 function renderLobby() {
   const now = Date.now();
-  const others = NET.peers.filter(p => p.kind === 'viewer' && !p.sameTab && p.presence && p.presence.v === 6 && !(typeof p.updatedAt === 'number' && now - p.updatedAt > 12000));
+  const others = NET.peers.filter(p => p.kind === 'viewer' && !p.sameTab && p.presence && p.presence.v === 7 && !(typeof p.updatedAt === 'number' && now - p.updatedAt > 12000));
   const waiting = others.filter(p => p.presence.st === 'wait' && p.presence.vis !== false);
   const away = others.filter(p => p.presence.vis === false);
   const searching = S.mode === 'search';
@@ -1866,6 +2023,8 @@ function renderProfile() {
   $('#xpFill').style.width = Math.min(100, P.xp / xpNeed(P.lv) * 100).toFixed(1) + '%';
   $('#xpTxt').textContent = P.xp + ' / ' + xpNeed(P.lv) + ' XP';
   $('#streakTxt').textContent = P.streak >= 2 ? '🔥 ' + P.streak + ' win streak' : '';
+  $('#bestTxt').textContent = P.best ? 'Best ' + fmtN(P.best) : '';
+  const sv = loadClassic(); $('#classicBtn').textContent = sv ? 'Continue (' + fmtN(num(sv.sc)) + ' pts)' : 'Play Classic'; $('#classicNew').hidden = !sv;
   $('#tsLv').textContent = 'Lv ' + P.lv; $('#tsCoins').textContent = '🪙 ' + fmtN(P.coins); $('#tsRank').textContent = '🏆 ' + r.n; $('#tsRank').style.color = r.c;
   const box = $('#skins');
   if (!box.children.length) {
@@ -1975,8 +2134,11 @@ document.querySelectorAll('#cpuSeg button').forEach(b => {
   b.setAttribute('aria-pressed', String(b.dataset.lv === S.cpuLevel));
 });
 $('#cpuBtn').addEventListener('click', startCpu);
+$('#classicBtn').addEventListener('click', () => startClassic(true));
+$('#classicNew').addEventListener('click', () => startClassic(false));
 $('#topStats').addEventListener('click', () => { const c = $('#rewardsCard'); if (c.scrollIntoView) c.scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'start' }); });
 $('#againBtn').addEventListener('click', () => {
+  if (S.classic) { startClassic(); return; }
   if (S.vsCpu) { startCpu(); return; }
   if (NET.avail !== 'yes') { toLobby(); return; }
   S.mode = 'search'; S.netSt = 'wait'; readySince = Date.now();
@@ -2029,7 +2191,7 @@ $('#quitBtn').addEventListener('click', () => {
   const q = $('#quitBtn');
   if (S.mode === 'lobby') return;
   if (Date.now() - quitArm < 2500) { q.classList.remove('arm'); toLobby(); return; }
-  quitArm = Date.now(); q.classList.add('arm'); praise('', 'Tap ✕ again to leave');
+  quitArm = Date.now(); q.classList.add('arm'); praise('', S.classic ? 'Tap ✕ again to leave. Your game is saved.' : 'Tap ✕ again to leave');
   setTimeout(() => q.classList.remove('arm'), 2500);
 });
 
@@ -2048,7 +2210,7 @@ function frame(t) {
   if (S.mode === 'countdown') {
     const left = S.countEnd - now, n = String(Math.ceil(left / 1000));
     if (left <= 0) {
-      S.mode = 'play'; S.playStart = now; S.roundEnd = now + ROUND_MS; S.lastTick = 0;
+      S.mode = 'play'; S.playStart = now; S.roundEnd = S.classic ? Infinity : now + ROUND_MS; S.lastTick = 0;
       countShown = 'Go!'; $('#count').textContent = 'Go!'; sfx.go(); buzz(25);
       const ce = $('#count'); ce.classList.add('goNow'); flash(ce, 'pop');
       const pt = centerOf($('#stage')); sparkBurst(pt[0], pt[1], '#7dff6a', 36, .4); sparkBurst(pt[0], pt[1], '#ffffff', 14, .3);
@@ -2097,12 +2259,12 @@ let hiddenAt = 0;
 document.addEventListener('visibilitychange', () => {
   // tell the other player right away whether this game is on screen
   lastFlush = 0; flushPresence(Date.now());
-  if (document.hidden) { hiddenAt = Date.now(); musicStop(); return; }
+  if (document.hidden) { hiddenAt = Date.now(); musicStop(); saveClassic(); return; }
   if (inRound()) { const f = MUS.fast; musicStart(); MUS.fast = f; }
   if (!hiddenAt) return;
   const wentAt = hiddenAt, away = Date.now() - wentAt; hiddenAt = 0;
-  if (S.vsCpu) {
-    // the computer waits for you
+  if (S.vsCpu || S.classic) {
+    // the computer (and Classic) waits for you
     if (S.mode === 'play') { S.playStart += away; S.roundEnd += away; for (const g of [S.game, S.cpu]) if (g) { if (g.ice > wentAt) g.ice += away; g.lastAtk += away; } }
     else if (S.mode === 'countdown') S.countEnd += away;
     return;
@@ -2122,7 +2284,7 @@ if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { hu
 layout();
 drawLogo();
 makeBgFx($('#app')); makeBgFx($('#lobby')); makeBgFx($('#result'));
-['#onlineBtn', '#friendBtn', '#publicBtn', '#shareBtn', '#cpuBtn', '#againBtn', '#lobbyBtn', '#chestBtn', '#tgSound', '#tgMusic', '#tgVib'].forEach(q => addTick($(q)));
+['#classicBtn', '#onlineBtn', '#friendBtn', '#publicBtn', '#shareBtn', '#cpuBtn', '#againBtn', '#lobbyBtn', '#chestBtn', '#tgSound', '#tgMusic', '#tgVib'].forEach(q => addTick($(q)));
 renderProfile();
 renderLobby();
 requestAnimationFrame(frame);
