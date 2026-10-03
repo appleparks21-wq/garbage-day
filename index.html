@@ -246,6 +246,39 @@ canvas{display:block}
 .chest.open .chestTxt{font-size:26px;animation:bump .45s}
 .chest.jack .chestTxt{color:#ff8fd0}
 
+/* iPhone tap haptics: an invisible native switch sits on top of a button */
+.hxw{position:relative}
+.hx{position:absolute;left:0;top:0;width:100%;height:100%;margin:0;padding:0;opacity:0;z-index:3;cursor:pointer}
+/* floating blocks drifting up behind everything */
+.bgfx{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.bgfx i{position:absolute;bottom:-70px;border-radius:24%;opacity:.12;box-shadow:inset 0 -4px 0 rgba(0,0,0,.25),inset 0 4px 0 rgba(255,255,255,.35);animation:floatUp linear infinite}
+@keyframes floatUp{to{transform:translateY(-125vh) rotate(300deg)}}
+/* menu */
+.logo canvas{animation:logoIn .9s cubic-bezier(.3,1.6,.5,1) both}
+.logo h1{animation:titleIn .7s cubic-bezier(.3,1.6,.5,1) .15s both}
+@keyframes logoIn{0%{opacity:0;transform:translateY(-70px) scale(.6)}100%{opacity:1;transform:none}}
+@keyframes titleIn{0%{opacity:0;transform:scale(.4) rotate(-6deg)}100%{opacity:1;transform:none}}
+.big{position:relative;overflow:hidden;transition:transform .08s}
+.big:active{transform:translateY(3px) scale(.98)}
+.big.go:not(:disabled)::before,.big.alt::before{content:'';position:absolute;top:0;bottom:0;left:-60%;width:40%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-20deg);animation:shine 3.2s ease-in-out infinite;pointer-events:none}
+.big.alt::before{animation-delay:1.6s}
+@keyframes shine{0%,55%{left:-60%}100%{left:130%}}
+/* countdown */
+.count.pop{animation:cpop .55s cubic-bezier(.2,1.7,.4,1)}
+.count.goNow{color:#7dff6a}
+@keyframes cpop{0%{opacity:0;transform:scale(2.4)}60%{opacity:1;transform:scale(.92)}100%{transform:none}}
+/* your board is nearly full */
+.boardWrap.danger::after{content:'';position:absolute;inset:-3px;border-radius:19px;pointer-events:none;box-shadow:0 0 0 3px #ff4f63,0 0 28px 4px rgba(255,79,99,.65);animation:danger .7s ease-in-out infinite alternate}
+@keyframes danger{from{opacity:.35}to{opacity:1}}
+.hint.danger{color:#ff8a96}
+/* opponent card reacting */
+.opp{position:relative}
+.opp.odanger{box-shadow:inset 0 0 0 2px #ff4f63,0 0 16px rgba(255,79,99,.55)}
+.ofloat{position:absolute;left:96px;top:30%;font-family:var(--disp);font-weight:700;font-size:20px;color:var(--gold);pointer-events:none;white-space:nowrap;animation:ofl .9s ease-out forwards;text-shadow:-2px -2px 0 var(--outline),2px -2px 0 var(--outline),-2px 2px 0 var(--outline),2px 2px 0 var(--outline),0 3px 0 var(--outline)}
+.ofloat.cb{left:auto;right:12px;font-size:24px;color:#ff8fd0}
+@keyframes ofl{0%{opacity:0;transform:translateY(8px) scale(.6)}20%{opacity:1;transform:scale(1.15)}100%{opacity:0;transform:translateY(-26px)}}
+#dragCv{filter:drop-shadow(0 12px 10px rgba(5,8,40,.5));transform-origin:50% 50%}
+
 @media (max-height:640px){
   .tray{height:90px}
   .score{font-size:28px}
@@ -258,6 +291,9 @@ canvas{display:block}
   .bump,.tray.shake,.skin.no,.rw,.opp.wobble,.pbtn.launch,.pmeter.hot i,.pmeter.dump{animation:none}
   .cstamp{animation:fade 1.3s linear forwards}
   .rays,.cem,.cstamp.c5 b,.chestBtn.rattle .cem,.chest.open .cem,.chest.open .chestTxt{animation:none}
+  .bgfx{display:none}
+  .logo canvas,.logo h1,.big.go::before,.big.alt::before,.count.pop,.boardWrap.danger::after{animation:none}
+  .ofloat{animation:fade .9s linear forwards}
 }
 </style>
 
@@ -691,7 +727,9 @@ const sfx = {
   win: () => [0, 2, 4, 5, 7].forEach((k, i) => tone(NOTES[k], .2, 'triangle', .09, 0, i * .09)),
   lose: () => [4, 2, 0].forEach((k, i) => tone(NOTES[k] / 2, .3, 'triangle', .09, 0, i * .15)),
   count: () => tone(520, .09, 'triangle', .07),
-  go: () => tone(1040, .18, 'triangle', .08)
+  go: () => { tone(1040, .18, 'triangle', .08); tone(1560, .3, 'triangle', .06, 0, .08); noise(.25, .05, 3000, 'highpass'); },
+  deal: () => [0, 2, 4].forEach((k, i) => tone(NOTES[k] / 2, .08, 'triangle', .045, 0, i * .07)),
+  heart: () => { tone(70, .12, 'sine', .22, 45); tone(62, .12, 'sine', .16, 40, .17); }
 };
 // Vibration: Android phones support it directly. iPhones don't, but Safari on iOS 18 and newer
 // gives a light tap whenever a "switch" checkbox flips, so we flip a hidden one.
@@ -713,6 +751,28 @@ function buzz(p) {
   if (!IOS) return;
   const n = Array.isArray(p) ? Math.min(3, Math.ceil(p.length / 2)) : 1;
   tap(); for (let k = 1; k < n; k++) setTimeout(tap, k * 110);
+}
+// Since iOS 26.5 the trick above only works on older iPhones: now a haptic only happens when a
+// finger really taps a native switch. So the main buttons get an invisible switch laid on top.
+function addTick(el) {
+  if (!IOS || !el) return;
+  const s = document.createElement('input'); s.type = 'checkbox'; s.setAttribute('switch', ''); s.className = 'hx'; s.tabIndex = -1; s.setAttribute('aria-hidden', 'true');
+  // a disabled button shouldn't react to a tap on its switch
+  s.addEventListener('click', e => { if (el.disabled) e.stopPropagation(); });
+  el.classList.add('hxw'); el.appendChild(s);
+  // some buttons rewrite their text, which would wipe the switch out, so put it back
+  if (window.MutationObserver) new MutationObserver(() => { if (s.parentNode !== el) el.appendChild(s); }).observe(el, { childList: true });
+}
+// floating blocks that drift up the background
+function makeBgFx(host) {
+  const box = document.createElement('div'); box.className = 'bgfx'; box.setAttribute('aria-hidden', 'true');
+  const cols = SKINS[0].c;
+  for (let i = 0; i < 9; i++) {
+    const b = document.createElement('i'), sz = 18 + Math.round(Math.random() * 30), dur = 16 + Math.random() * 14;
+    b.style.cssText = 'left:' + (Math.random() * 92).toFixed(1) + '%;width:' + sz + 'px;height:' + sz + 'px;background:' + cols[i % cols.length] + ';animation-duration:' + dur.toFixed(1) + 's;animation-delay:-' + (Math.random() * dur).toFixed(1) + 's';
+    box.appendChild(b);
+  }
+  host.insertBefore(box, host.firstChild);
 }
 
 /* ================= music ================= */
@@ -921,9 +981,11 @@ function drawBoard(now, dt) {
     for (let k = 0; k < N * N; k++) {
       const v = g.b[k]; if (!v) continue;
       const x = p + (k % N) * c, y = p + ((k / N) | 0) * c;
-      const pop = POPS.find(d => d.k === k);
-      const sc = pop ? 1 + .18 * Math.sin(Math.min(1, (now - pop.t0) / 180) * Math.PI) : 1;
+      const pop = POPS.find(d => d.k === k), pt = pop ? now - pop.t0 : 999;
+      const sc = pop ? 1 + .18 * Math.sin(Math.min(1, pt / 180) * Math.PI) : 1;
       block(ctx, lit.has(k) ? col(drag.p.v) : col(v), x, y, c, 1, sc);
+      // a quick white flash as a piece lands
+      if (pt < 170) { ctx.globalAlpha = .6 * (1 - pt / 170); ctx.fillStyle = '#fff'; rr(ctx, x + 2, y + 2, c - 4, c - 4, c * .14); ctx.fill(); ctx.globalAlpha = 1; }
     }
     if (drag && drag.gx != null) {
       for (const [cx, cy] of drag.p.s.c) { const k = (drag.gy + cy) * N + drag.gx + cx; block(ctx, col(drag.p.v), p + (drag.gx + cx) * c, p + (drag.gy + cy) * c, c, lit.has(k) ? 1 : .42); }
@@ -998,24 +1060,35 @@ function drawBoard(now, dt) {
   ctx.globalAlpha = 1;
   if (g && g.dead) { ctx.fillStyle = 'rgba(12,14,50,.55)'; rr(ctx, 0, 0, bs, bs, 16); ctx.fill(); }
 }
+const slotP = [], slotT = [];
 function drawTray(now) {
   const g = S.game, iced = !!g && S.mode === 'play' && g.frozen(now), st = S.scrT0 ? (now - S.scrT0) / 650 : 1;
+  // a fresh set of pieces pops in one after another
+  if (g) {
+    let fresh = 0;
+    for (let i = 0; i < 3; i++) { const p = g.tray[i]; if (p !== slotP[i]) { slotP[i] = p; if (p) slotT[i] = now + 70 * fresh++; } }
+    if (fresh >= 2 && st >= 1 && (S.mode === 'play' || S.mode === 'countdown')) sfx.deal();
+  }
   for (let i = 0; i < 3; i++) {
     const ctx = trayCtx[i]; if (!ctx) continue;
     ctx.clearRect(0, 0, L.tw, L.th);
     ctx.fillStyle = 'rgba(12,16,70,.35)'; rr(ctx, 2, 2, L.tw - 4, L.th - 4, 14); ctx.fill();
     if (!g) continue;
     const p = g.tray[i];
-    if (p && !(drag && drag.i === i)) {
-      const s = Math.min(Math.floor(L.cell * .56), Math.floor((L.tw - 16) / Math.max(p.s.w, 3)), Math.floor((L.th - 16) / Math.max(p.s.h, 3)));
+    if (p && !(drag && drag.i === i) && !(flyBack && flyBack.i === i)) {
+      const s = trayScale(p);
       const ok = g.dead || S.mode !== 'play' ? true : g.anyFit(p);
       const ox = (L.tw - p.s.w * s) / 2, oy = (L.th - p.s.h * s) / 2;
-      // scrambled pieces spin into place
-      const spin = st < 1 && !REDUCED;
-      if (spin) { const e = Math.max(.01, easeOutBack(Math.max(0, st))); ctx.save(); ctx.translate(L.tw / 2, L.th / 2); ctx.rotate((1 - e) * Math.PI * 2 * (i % 2 ? -1 : 1)); ctx.scale(e, e); ctx.translate(-L.tw / 2, -L.th / 2); }
-      // a piece that can't fit anywhere right now is shown faded
-      for (const [cx, cy] of p.s.c) block(ctx, col(p.v), ox + cx * s, oy + cy * s, s, ok ? 1 : .28);
-      if (spin) ctx.restore();
+      // scrambled pieces spin into place; new ones pop in
+      const spin = st < 1 && !REDUCED, pt = (now - (slotT[i] || 0)) / 320, pop = !spin && pt < 1 && !REDUCED;
+      const e = spin ? Math.max(.01, easeOutBack(Math.max(0, st))) : pop ? Math.max(0, easeOutBack(Math.max(0, pt))) : 1;
+      if (e > .001) {
+        const tf = e !== 1;
+        if (tf) { ctx.save(); ctx.translate(L.tw / 2, L.th / 2); if (spin) ctx.rotate((1 - e) * Math.PI * 2 * (i % 2 ? -1 : 1)); ctx.scale(e, e); ctx.translate(-L.tw / 2, -L.th / 2); }
+        // a piece that can't fit anywhere right now is shown faded
+        for (const [cx, cy] of p.s.c) block(ctx, col(p.v), ox + cx * s, oy + cy * s, s, ok ? 1 : .28);
+        if (tf) ctx.restore();
+      }
     }
     if (iced) {
       const left = Math.max(0, Math.min(1, (g.ice - now) / FREEZE_MS));
@@ -1052,6 +1125,10 @@ function drawOpp(now, o) {
 
 /* ================= juice ================= */
 function bump(el) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+function oppFloat(t, cls) {
+  const card = $('#oppCard'), el = document.createElement('div'); el.className = 'ofloat' + (cls ? ' ' + cls : ''); el.textContent = t;
+  card.appendChild(el); setTimeout(() => el.remove(), 950);
+}
 function flash(el, cls) { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
 const PRAISE = ['', 'Good!', 'Great!', 'Excellent!', 'Amazing!', 'Unbelievable!'];
 let praiseTok = 0, stampUntil = 0;
@@ -1207,6 +1284,11 @@ function renderHud(now, o) {
     $('#pBomb').classList.toggle('has', bombs > 0);
     const bc = $('#bombCount'); bc.hidden = !bombs; bc.textContent = bombs;
   }
+  // a crowded board glows red and you hear a heartbeat
+  let fill = 0; if (g) for (let k = 0; k < N * N; k++) if (g.b[k]) fill++;
+  const danger = !!g && S.mode === 'play' && !g.dead && fill >= 40;
+  if (hud.dg !== danger) { hud.dg = danger; $('#boardWrap').classList.toggle('danger', danger); }
+  if (danger && now > (S.beatAt || 0)) { S.beatAt = now + 1150; sfx.heart(); }
   // the line under your score
   let hint = '', cls = '';
   if (S.mode === 'countdown') hint = 'Get ready!';
@@ -1215,6 +1297,7 @@ function renderHud(now, o) {
   else if (g.dead) hint = 'You ran out of room.';
   else if (S.hintNote && now < S.hintNote.until) { hint = S.hintNote.t; cls = 'warn'; }
   else if (g.frozen(now)) { hint = 'Frozen! Your pieces thaw in ' + Math.ceil((g.ice - now) / 1000) + 's'; cls = 'ice'; }
+  else if (danger && !cb) { hint = 'Running out of room! Clear some lines.'; cls = 'danger'; }
   else if (g.moves < 4 && !g.fills) { hint = 'Clears fill your meter. Full = automatic power!'; }
   else if (cb > 0) hint = 'Combo x' + cb + ': clear again within ' + cl + (cl === 1 ? ' move!' : ' moves');
   else if (g.moves === 0) hint = 'Drag a piece onto the board.';
@@ -1234,9 +1317,16 @@ function renderHud(now, o) {
       const parts = []; if (coming) parts.push('\u26a0 ' + coming + ' coming!'); if (o.cb > 1) parts.push('Combo x' + o.cb); if (o.bm > 0) parts.push('\ud83d\udca3' + o.bm);
       oi = parts.join(' · '); if (coming) ocls = 'hot';
     }
-    if (o.cb > S.lastOppCb && o.cb > 1) flash($('#oppCard'), 'hit');
-    S.lastOppCb = o.cb;
+    // their points and combos pop up on their card
+    if (o.cb > S.lastOppCb && o.cb > 1) { flash($('#oppCard'), 'hit'); oppFloat('x' + o.cb + '!', 'cb'); }
+    if (S.lastOppSc != null && o.sc - S.lastOppSc >= 100) oppFloat('+' + fmtN(o.sc - S.lastOppSc), '');
+    S.lastOppCb = o.cb; S.lastOppSc = o.sc;
   }
+  // and their card glows red when they're nearly out of room
+  let ofill = 0; if (o && o.b) for (let k = 0; k < o.b.length; k++) if (o.b.charCodeAt(k) > 48) ofill++;
+  const od = !!o && live && o.alive && ofill >= 40;
+  if (od && !oi) { oi = '😰 Almost out of room!'; ocls = 'hot'; }
+  if (hud.od !== od) { hud.od = od; $('#oppCard').classList.toggle('odanger', od); }
   setText($('#oppInc'), 'oi', oi);
   const fz = !!(o && o.fz && live);
   if (hud.ofz !== fz) { hud.ofz = fz; $('#oppCard').classList.toggle('frosted', fz); }
@@ -1278,7 +1368,12 @@ function makeGame(seed, mine) {
 function afterPlace(info) {
   sfx.place(); buzz(8);
   const now = Date.now(), c = L.cell, p = L.pad;
-  for (const [cx, cy] of info.p.s.c) POPS.push({ k: (info.y + cy) * N + info.x + cx, t0: now });
+  for (const [cx, cy] of info.p.s.c) {
+    POPS.push({ k: (info.y + cy) * N + info.x + cx, t0: now });
+    // little puffs of dust under the piece as it lands
+    if (!info.p.s.c.some(([ax, ay]) => ax === cx && ay === cy + 1)) burst(p + (info.x + cx + .5) * c, p + (info.y + cy + 1) * c - 2, 'rgba(225,232,255,.9)', 3, .1, 380);
+  }
+  if (!info.n) kick(1.6);
   const cb = info.combo, rgb = comboRGB(info.n ? cb : 0), hue = 'rgb(' + rgb + ')';
   if (info.n) {
     const cx0 = info.x + info.p.s.w / 2, cy0 = info.y + info.p.s.h / 2;
@@ -1804,13 +1899,14 @@ function pickSkin(id, btn) {
 }
 
 /* ================= drag and drop ================= */
-let drag = null;
+let drag = null, flyBack = null;
 function startDrag(i, e) {
   const g = S.game; if (!g || S.mode !== 'play' || g.dead || drag) return false;
   const p = g.tray[i]; if (!p) return false;
   if (g.frozen(Date.now())) { sfx.bad(); hintNote('Frozen! Wait for your pieces to thaw.', 1200); return false; }
   audioInit(); sfx.pick(); buzz(6);
-  drag = { i, p, id: e.pointerId, gx: null, gy: null };
+  endFlyBack();
+  drag = { i, p, id: e.pointerId, gx: null, gy: null, t0: performance.now(), px: e.clientX, py: e.clientY };
   const c = L.cell;
   ctxD = setupCanvas(cvD, p.s.w * c, p.s.h * c);
   for (const [cx, cy] of p.s.c) block(ctxD, col(p.v), cx * c, cy * c, c);
@@ -1818,23 +1914,38 @@ function startDrag(i, e) {
   moveDrag(e);
   return true;
 }
-function moveDrag(e) {
-  if (!drag) return;
+// the piece pops up out of the tray as you grab it
+function dragScale() { return !drag || REDUCED ? 1 : .6 + .4 * easeOutBack(Math.min(1, (performance.now() - drag.t0) / 160)); }
+function placeDrag() {
   const c = L.cell, pw = drag.p.s.w * c, ph = drag.p.s.h * c;
   // the piece rides above your finger so you can see where it goes
-  const left = e.clientX - pw / 2, top = e.clientY - ph - Math.max(36, c * 1.1);
-  cvD.style.transform = 'translate(' + left.toFixed(1) + 'px,' + top.toFixed(1) + 'px)';
-  const r = cvB.getBoundingClientRect();
-  const gx = Math.round((left - r.left - L.pad) / c), gy = Math.round((top - r.top - L.pad) / c);
+  drag.left = drag.px - pw / 2; drag.top = drag.py - ph - Math.max(36, c * 1.1);
+  cvD.style.transform = 'translate(' + drag.left.toFixed(1) + 'px,' + drag.top.toFixed(1) + 'px) scale(' + dragScale().toFixed(3) + ')';
+}
+function moveDrag(e) {
+  if (!drag) return;
+  drag.px = e.clientX; drag.py = e.clientY; placeDrag();
+  const c = L.cell, r = cvB.getBoundingClientRect();
+  const gx = Math.round((drag.left - r.left - L.pad) / c), gy = Math.round((drag.top - r.top - L.pad) / c);
   if (S.game && S.game.fits(drag.p, gx, gy)) { drag.gx = gx; drag.gy = gy; } else { drag.gx = null; drag.gy = null; }
 }
 function endDrag() {
   if (!drag) return;
-  const d = drag; drag = null; cvD.hidden = true;
+  const d = drag; drag = null;
   const g = S.game, ok = d.gx != null && g && S.mode === 'play';
   const info = ok && g.tray[d.i] === d.p ? g.place(d.i, d.gx, d.gy, Date.now()) : null;
-  if (info) afterPlace(info); else sfx.bad();
+  if (info) { cvD.hidden = true; afterPlace(info); } else { sfx.bad(); flyHome(d); }
 }
+// a piece dropped where it can't go flies back to its slot
+function trayScale(p) { return Math.min(Math.floor(L.cell * .56), Math.floor((L.tw - 16) / Math.max(p.s.w, 3)), Math.floor((L.th - 16) / Math.max(p.s.h, 3))); }
+function flyHome(d) {
+  if (REDUCED || !cvD.animate || d.left == null || !S.game || S.game.tray[d.i] !== d.p) { cvD.hidden = true; return; }
+  const sl = trayCv[d.i].getBoundingClientRect(), c = L.cell, pw = d.p.s.w * c, ph = d.p.s.h * c, k = trayScale(d.p) / c;
+  const to = 'translate(' + (sl.left + sl.width / 2 - pw / 2).toFixed(1) + 'px,' + (sl.top + sl.height / 2 - ph / 2).toFixed(1) + 'px) scale(' + k.toFixed(3) + ')';
+  const anim = cvD.animate([{ transform: cvD.style.transform }, { transform: to }], { duration: 210, easing: 'cubic-bezier(.3,.7,.4,1)' });
+  flyBack = { i: d.i, anim }; anim.onfinish = endFlyBack;
+}
+function endFlyBack() { if (!flyBack) return; const f = flyBack; flyBack = null; try { f.anim.cancel(); } catch (e) {} if (!drag) cvD.hidden = true; }
 function cancelDrag() { drag = null; cvD.hidden = true; }
 // While dragging, listen on the whole window, not just the tray slot: Safari can hand the finger
 // off to another element mid-drag, and the drop still has to land.
@@ -1927,6 +2038,7 @@ function draw(now) {
   if (!ctxB) return;
   const t = performance.now(), dt = Math.min(50, t - (draw.last || t)); draw.last = t;
   const o = oppView(now);
+  if (drag && t - drag.t0 < 220) placeDrag();
   drawBoard(now, dt); drawTray(now); drawOpp(now, o); renderHud(now, o);
 }
 let lastT = performance.now(), lastNet = 0;
@@ -1937,9 +2049,11 @@ function frame(t) {
     const left = S.countEnd - now, n = String(Math.ceil(left / 1000));
     if (left <= 0) {
       S.mode = 'play'; S.playStart = now; S.roundEnd = now + ROUND_MS; S.lastTick = 0;
-      countShown = 'Go!'; $('#count').textContent = 'Go!'; sfx.go();
+      countShown = 'Go!'; $('#count').textContent = 'Go!'; sfx.go(); buzz(25);
+      const ce = $('#count'); ce.classList.add('goNow'); flash(ce, 'pop');
+      const pt = centerOf($('#stage')); sparkBurst(pt[0], pt[1], '#7dff6a', 36, .4); sparkBurst(pt[0], pt[1], '#ffffff', 14, .3);
       setTimeout(() => { if (S.mode !== 'countdown') $('#count').hidden = true; }, 500);
-    } else if (countShown !== n) { countShown = n; $('#count').textContent = n; sfx.count(); }
+    } else if (countShown !== n) { countShown = n; const ce = $('#count'); ce.textContent = n; ce.classList.remove('goNow'); flash(ce, 'pop'); sfx.count(); }
   }
   if (S.mode === 'play') {
     pollNet(now);
@@ -2007,6 +2121,8 @@ if (window.ResizeObserver) new ResizeObserver(() => {
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { hud = {}; });
 layout();
 drawLogo();
+makeBgFx($('#app')); makeBgFx($('#lobby')); makeBgFx($('#result'));
+['#onlineBtn', '#friendBtn', '#publicBtn', '#shareBtn', '#cpuBtn', '#againBtn', '#lobbyBtn', '#chestBtn', '#tgSound', '#tgMusic', '#tgVib'].forEach(q => addTick($(q)));
 renderProfile();
 renderLobby();
 requestAnimationFrame(frame);
