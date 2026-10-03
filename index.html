@@ -63,6 +63,9 @@ canvas{display:block}
 .ico{border:0;background:transparent;width:28px;height:26px;display:flex;align-items:center;justify-content:center;color:var(--ink2);padding:0;border-radius:6px}
 .ico svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .ico.arm{color:var(--red);box-shadow:inset 0 0 0 2px var(--red)}
+.toggles{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.tog{border:0;border-radius:12px;background:rgba(0,0,0,.25);color:var(--ink3);font-weight:800;font-size:15px;padding:10px 4px;box-shadow:inset 0 0 0 2px rgba(120,140,255,.2)}
+.tog[aria-pressed="true"]{background:#fff;color:var(--deep);box-shadow:none}
 
 /* my score, combo and powers */
 .me{flex:none;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:10px;row-gap:3px}
@@ -118,7 +121,18 @@ canvas{display:block}
 .floatpts{position:absolute;font-family:var(--disp);font-weight:700;font-size:20px;color:#fff;animation:up .8s ease-out forwards;transform:translate(-50%,-50%);white-space:nowrap;text-shadow:-2px -2px 0 var(--outline),2px -2px 0 var(--outline),-2px 2px 0 var(--outline),2px 2px 0 var(--outline),0px -2px 0 var(--outline),0px 2px 0 var(--outline),-2px 0px 0 var(--outline),2px 0px 0 var(--outline),0 3px 0 var(--outline);}
 @keyframes up{0%{opacity:0;margin-top:6px}15%{opacity:1}100%{opacity:0;margin-top:-34px}}
 .count{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-weight:700;font-size:110px;color:var(--gold);text-shadow:-4px -4px 0 var(--outline),4px -4px 0 var(--outline),-4px 4px 0 var(--outline),4px 4px 0 var(--outline),0px -4px 0 var(--outline),0px 4px 0 var(--outline),-4px 0px 0 var(--outline),4px 0px 0 var(--outline),0 8px 0 var(--outline);}
-.flyer{position:fixed;left:0;top:0;width:32px;height:32px;font-size:28px;line-height:32px;text-align:center;z-index:60;pointer-events:none}
+#fxCv{position:fixed;left:0;top:0;z-index:45;pointer-events:none}
+#flash{position:fixed;inset:0;z-index:44;pointer-events:none;opacity:0}
+.opp.frosted{box-shadow:inset 0 0 0 2px #c9efff,0 0 20px rgba(150,220,255,.55);background:linear-gradient(rgba(150,220,255,.3),rgba(18,25,86,.72))}
+.opp.wobble{animation:wobble .6s ease-out}
+@keyframes wobble{15%{transform:rotate(-3deg) scale(1.03)}35%{transform:rotate(3deg)}55%{transform:rotate(-2deg)}75%{transform:rotate(1deg)}100%{transform:none}}
+.pmeter.hot{box-shadow:0 0 10px rgba(127,243,255,.65)}
+.pmeter.hot i{background:linear-gradient(90deg,#8a5cff,#2ed3e8,#ffffff,#2ed3e8,#8a5cff);background-size:200% 100%;animation:shimmer .9s linear infinite}
+@keyframes shimmer{to{background-position:-200% 0}}
+.pmeter.dump{animation:dump .5s ease-out}
+@keyframes dump{0%{box-shadow:0 0 0 3px #fff,0 0 26px #fff}100%{box-shadow:none}}
+.pbtn.launch{animation:launch .5s cubic-bezier(.3,1.8,.5,1)}
+@keyframes launch{30%{transform:scale(1.35) translateY(-6px)}100%{transform:none}}
 
 /* tray */
 .tray{flex:none;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;height:104px}
@@ -214,7 +228,7 @@ canvas{display:block}
   .pw,.ps{animation:fade 1.1s linear forwards}
   @keyframes fade{0%,70%{opacity:1}100%{opacity:0}}
   .big.go.searching,.pbtn.glow,.clock.low,.boardWrap.c3,.boardWrap.c5{animation:none}
-  .bump,.tray.shake,.skin.no,.rw{animation:none}
+  .bump,.tray.shake,.skin.no,.rw,.opp.wobble,.pbtn.launch,.pmeter.hot i,.pmeter.dump{animation:none}
 }
 </style>
 
@@ -231,6 +245,7 @@ canvas{display:block}
       <div class="clock" id="clock">2:00</div>
       <div class="icons">
         <button class="ico" id="sndBtn" aria-label="Sound on"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path id="sndWave" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg></button>
+        <button class="ico" id="musBtn" aria-label="Music on"><svg viewBox="0 0 24 24"><path d="M9 17V5l10-2v12"/><circle cx="6.5" cy="17" r="2.5"/><circle cx="16.5" cy="15" r="2.5"/><path id="musX" d="M4 4l16 16"/></svg></button>
         <button class="ico" id="quitBtn" aria-label="Leave game"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </div>
     </div>
@@ -267,6 +282,8 @@ canvas{display:block}
     <canvas data-i="2" aria-label="Piece 3"></canvas>
   </div>
   <canvas id="dragCv" hidden></canvas>
+  <canvas id="fxCv" aria-hidden="true"></canvas>
+  <div id="flash" aria-hidden="true"></div>
 
   <section class="screen" id="lobby">
     <div class="inner">
@@ -316,6 +333,16 @@ canvas{display:block}
         <span class="lbl">Block skins</span>
         <div class="skins" id="skins"></div>
         <p class="note" id="shopMsg">Every game earns coins. Online games pay the most, and only online games earn trophies.</p>
+      </div>
+
+      <div class="card">
+        <span class="lbl">Sound and vibration</span>
+        <div class="toggles">
+          <button class="tog" id="tgSound" aria-pressed="true">🔊 Sound</button>
+          <button class="tog" id="tgMusic" aria-pressed="true">🎵 Music</button>
+          <button class="tog" id="tgVib" aria-pressed="true">📳 Vibrate</button>
+        </div>
+        <p class="note">No sound on an iPhone? Make sure Silent mode is off.</p>
       </div>
 
       <div class="card">
@@ -580,7 +607,7 @@ function cpuMove(g) {
 }
 
 /* ================= sound ================= */
-const SND = { ctx: null, master: null, on: true, noise: null };
+const SND = { ctx: null, master: null, on: true, music: true, vib: true, noise: null };
 function audioInit() {
   if (SND.ctx) { if (SND.ctx.state === 'suspended') SND.ctx.resume().catch(() => {}); return; }
   try { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return; SND.ctx = new AC(); SND.master = SND.ctx.createGain(); SND.master.gain.value = .55; SND.master.connect(SND.ctx.destination); } catch (e) { SND.ctx = null; }
@@ -617,6 +644,8 @@ const sfx = {
   scramble: () => { for (let i = 0; i < 6; i++) tone(300 + Math.random() * 700, .07, 'square', .03, 0, i * .045); },
   boom: () => { noise(.6, .45, 500); tone(80, .45, 'sine', .3, 30); },
   tick: () => tone(1000, .05, 'square', .03),
+  fuse: () => { noise(.7, .06, 6500, 'highpass'); tone(1400, .5, 'sawtooth', .015, 900); },
+  thaw: () => { noise(.3, .16, 3200, 'highpass'); tone(1900, .22, 'triangle', .05, 600); tone(2600, .15, 'sine', .03, 0, .06); },
   coin: (delay) => { tone(1320, .07, 'square', .03, 0, delay || 0); tone(1760, .12, 'square', .03, 0, (delay || 0) + .07); },
   levelUp: () => [0, 2, 4, 7, 9].forEach((k, i) => tone(NOTES[k], .2, 'triangle', .08, 0, .3 + i * .08)),
   win: () => [0, 2, 4, 5, 7].forEach((k, i) => tone(NOTES[k], .2, 'triangle', .09, 0, i * .09)),
@@ -624,7 +653,93 @@ const sfx = {
   count: () => tone(520, .09, 'triangle', .07),
   go: () => tone(1040, .18, 'triangle', .08)
 };
-function buzz(p) { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} }
+// Vibration: Android phones support it directly. iPhones don't, but Safari on iOS 18 and newer
+// gives a light tap whenever a "switch" checkbox flips, so we flip a hidden one.
+const IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+let hapLabel = null;
+function tap() {
+  try {
+    if (!hapLabel) {
+      hapLabel = document.createElement('label'); hapLabel.setAttribute('aria-hidden', 'true'); hapLabel.style.display = 'none';
+      const i = document.createElement('input'); i.type = 'checkbox'; i.setAttribute('switch', ''); i.tabIndex = -1;
+      hapLabel.appendChild(i); document.body.appendChild(hapLabel);
+    }
+    hapLabel.click();
+  } catch (e) {}
+}
+function buzz(p) {
+  if (!SND.vib) return;
+  if (!IOS && navigator.vibrate) { try { navigator.vibrate(p); } catch (e) {} return; }
+  if (!IOS) return;
+  const n = Array.isArray(p) ? Math.min(3, Math.ceil(p.length / 2)) : 1;
+  tap(); for (let k = 1; k < n; k++) setTimeout(tap, k * 110);
+}
+
+/* ================= music ================= */
+// An original little loop made on the fly (no music files): bass, arpeggio, a lead tune and drums.
+// It speeds up for the last 30 seconds of a round.
+const MUS = { gain: null, timer: 0, next: 0, step: 0, playing: false, fast: false };
+const CHORDS = [[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]];   // Am, F, C, G
+const ARP = [0, 1, 2, 1, 0, 2, 1, 2];
+const LEAD = [
+  69, 0, 72, 0, 76, 0, 74, 72,   69, 0, 0, 0, 67, 0, 69, 0,
+  72, 0, 69, 0, 65, 0, 67, 69,   72, 0, 0, 0, 0, 0, 74, 0,
+  76, 0, 74, 0, 72, 0, 67, 0,    72, 0, 0, 74, 76, 0, 0, 0,
+  74, 0, 71, 0, 67, 0, 71, 74,   79, 0, 76, 0, 74, 0, 0, 0
+];
+function mtof(m) { return 440 * Math.pow(2, (m - 69) / 12); }
+function mnote(type, midi, t, d, v, cutoff) {
+  const c = SND.ctx; if (!c || !MUS.gain) return;
+  try {
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(mtof(midi), t);
+    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(v, t + .012); g.gain.exponentialRampToValueAtTime(.0001, t + d);
+    if (cutoff) { const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = cutoff; o.connect(f); f.connect(g); } else o.connect(g);
+    g.connect(MUS.gain); o.start(t); o.stop(t + d + .03);
+  } catch (e) {}
+}
+function mdrum(kind, t) {
+  const c = SND.ctx; if (!c || !MUS.gain) return;
+  try {
+    if (kind === 'kick') {
+      const o = c.createOscillator(), g = c.createGain();
+      o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(45, t + .12);
+      g.gain.setValueAtTime(.9, t); g.gain.exponentialRampToValueAtTime(.0001, t + .18);
+      o.connect(g); g.connect(MUS.gain); o.start(t); o.stop(t + .2);
+      return;
+    }
+    if (!SND.noise) { SND.noise = c.createBuffer(1, c.sampleRate, c.sampleRate); const a = SND.noise.getChannelData(0); for (let i = 0; i < a.length; i++) a[i] = Math.random() * 2 - 1; }
+    const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(), hat = kind === 'hat', d = hat ? .04 : .14;
+    s.buffer = SND.noise; f.type = hat ? 'highpass' : 'bandpass'; f.frequency.value = hat ? 7000 : 1800;
+    g.gain.setValueAtTime(hat ? .18 : .45, t); g.gain.exponentialRampToValueAtTime(.0001, t + d);
+    s.connect(f); f.connect(g); g.connect(MUS.gain); s.start(t, Math.random() * .5); s.stop(t + d + .02);
+  } catch (e) {}
+}
+function musicStep(n, t, e) {
+  const i = n % 8, bar = Math.floor(n / 8) % 8, chord = CHORDS[Math.floor(bar / 2)], loop = Math.floor(n / 64);
+  if (i === 0 || i === 3 || i === 6) mnote('triangle', chord[0] - 24 + (i === 6 ? 12 : 0), t, e * 1.7, .55);
+  mnote('square', chord[ARP[i]] + 12 + (bar % 2 && i >= 4 ? 12 : 0), t, e * .8, .045, 2200);
+  const ld = LEAD[n % 64];
+  if (ld && (loop % 2 === 0 || MUS.fast)) { let len = 1; while (len < 4 && !LEAD[(n + len) % 64]) len++; mnote('square', ld + 12, t, e * len * .95, .05, 3000); }
+  if (i === 0 || i === 4) mdrum('kick', t);
+  if (i === 2 || i === 6) mdrum('snare', t);
+  mdrum('hat', t); if (MUS.fast) mdrum('hat', t + e / 2);
+}
+function musicTick() {
+  const c = SND.ctx; if (!c || !MUS.playing) return;
+  const e = 60 / (MUS.fast ? 138 : 114) / 2;
+  if (MUS.next < c.currentTime) MUS.next = c.currentTime + .05;
+  while (MUS.next < c.currentTime + .15) { if (SND.on && SND.music) musicStep(MUS.step, MUS.next, e); MUS.step++; MUS.next += e; }
+}
+function musicStart() {
+  audioInit();
+  const c = SND.ctx; if (!c || !SND.on || !SND.music || MUS.playing) return;
+  if (!MUS.gain) { MUS.gain = c.createGain(); MUS.gain.gain.value = .17; MUS.gain.connect(SND.master); }
+  MUS.playing = true; MUS.step = 0; MUS.fast = false; MUS.next = c.currentTime + .1;
+  MUS.timer = setInterval(musicTick, 30);
+}
+function musicStop() { MUS.playing = false; clearInterval(MUS.timer); }
+function inRound() { return S.mode === 'countdown' || S.mode === 'play' || S.mode === 'timeup'; }
 
 /* ================= helpers ================= */
 function cleanName(s) { return String(s == null ? '' : s).replace(/[\u0000-\u001f\u007f-\u009f­​-‏‪-‮⁠-⁯﻿]/g, '').trim().slice(0, 14); }
@@ -680,7 +795,7 @@ const NET = { room: null, me: null, peers: [], avail: 'pending' };
 const NAMES = ['Blaster', 'Stacker', 'Smasher', 'Dumpster', 'Rubble', 'Brick', 'Crusher', 'Scrapper'];
 S.name = cleanName(load('gd_name')) || (NAMES[Math.floor(Math.random() * NAMES.length)] + ' ' + (10 + Math.floor(Math.random() * 90)));
 if (CPU[load('gd_cpu2')]) S.cpuLevel = load('gd_cpu2');
-SND.on = load('gd_snd') !== '0';
+SND.on = load('gd_snd') !== '0'; SND.music = load('gd_music') !== '0'; SND.vib = load('gd_vib') !== '0';
 
 /* ================= drawing ================= */
 const cvB = $('#board'), cvO = $('#oppCv'), cvD = $('#dragCv');
@@ -735,12 +850,13 @@ function layout() {
   L.oc = window.innerHeight < 640 ? 7 : 9; ctxO = setupCanvas(cvO, L.oc * N + 4, L.oc * N + 4);
   const tr = $('#tray'); L.tw = Math.floor((tr.clientWidth - 16) / 3); L.th = tr.clientHeight;
   trayCv.forEach((c, i) => { trayCtx[i] = setupCanvas(c, L.tw, L.th); });
-  spriteCache.clear(); hud = {};
+  spriteCache.clear(); hud = {}; fxLayout();
   draw(Date.now());
 }
 
 // animation lists (board pixel space)
-const PARTS = [], POPS = [], CLEARS = [];
+const PARTS = [], POPS = [], CLEARS = [], RINGS = [], BOMBS = [], FLAKES = [];
+function easeOutBack(t) { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); }
 function burst(x, y, color, n, spd, life) {
   if (REDUCED) n = Math.ceil(n / 3);
   for (let i = 0; i < n && PARTS.length < 700; i++) { const a = Math.random() * Math.PI * 2, v = (.25 + Math.random()) * spd; PARTS.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - spd * .5, life: life * (.6 + Math.random() * .6), max: life, c: color, s: 3 + Math.random() * 4, star: Math.random() < .35 }); }
@@ -798,10 +914,40 @@ function drawBoard(now, dt) {
     else { rr(ctx, q.x, q.y, q.s, q.s, 1.5); ctx.fill(); }
   }
   ctx.globalAlpha = 1;
+  // shockwave rings
+  for (let i = RINGS.length - 1; i >= 0; i--) {
+    const r = RINGS[i], t = (now - r.t0) / r.dur; if (t >= 1) { RINGS.splice(i, 1); continue; } if (t < 0) continue;
+    const e = 1 - Math.pow(1 - t, 3);
+    ctx.globalAlpha = 1 - t; ctx.strokeStyle = r.c; ctx.lineWidth = Math.max(1, r.w * (1 - t));
+    ctx.beginPath(); ctx.arc(r.x, r.y, r.r * e, 0, Math.PI * 2); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  // a bomb drops onto the board and blinks while the fuse burns
+  for (let i = BOMBS.length - 1; i >= 0; i--) {
+    const b = BOMBS[i], t = (now - b.t0) / b.dur; if (t >= 1) { BOMBS.splice(i, 1); continue; }
+    const ax = b.area[0], ay = b.area[1], aw = b.area[2], blink = t > .35 && Math.sin(t * 40) > 0;
+    ctx.globalAlpha = blink ? .5 : .22; ctx.fillStyle = '#ff4f63'; rr(ctx, ax + 1, ay + 1, aw - 2, aw - 2, c * .22); ctx.fill(); ctx.globalAlpha = 1;
+    const d = Math.min(1, t / .35), yy = b.y - (1 - d * d) * (b.y + c * 2), sc = 1 + (t > .35 ? .15 * Math.sin(t * 40) : 0);
+    ctx.save(); ctx.translate(b.x, yy); ctx.scale(sc, sc); ctx.font = Math.round(c * 1.5) + 'px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('\ud83d\udca3', 0, 0); ctx.restore();
+    if (t > .35 && Math.random() < .5) PARTS.push({ x: b.x + c * .35, y: yy - c * .55, vx: (Math.random() - .5) * .08, vy: -.08 - Math.random() * .08, life: 300, max: 300, c: Math.random() < .5 ? '#ffd234' : '#ff9b30', s: 2 + Math.random() * 2, star: true });
+  }
+  // frost around the edges and falling snow while you're frozen
+  if (g && S.mode === 'play' && g.frozen(now)) {
+    const gr = ctx.createRadialGradient(bs / 2, bs / 2, bs * .3, bs / 2, bs / 2, bs * .72);
+    gr.addColorStop(0, 'rgba(170,225,255,0)'); gr.addColorStop(1, 'rgba(190,235,255,.55)');
+    ctx.fillStyle = gr; rr(ctx, 0, 0, bs, bs, 16); ctx.fill();
+    if (!REDUCED && Math.random() < .35) FLAKES.push({ x: Math.random() * bs, y: -6, vx: (Math.random() - .5) * .02, vy: .04 + Math.random() * .05, s: 1.5 + Math.random() * 2.5, life: 4000 });
+  }
+  for (let i = FLAKES.length - 1; i >= 0; i--) {
+    const f = FLAKES[i]; f.x += f.vx * dt; f.y += f.vy * dt; f.life -= dt;
+    if (f.y > bs || f.life <= 0) { FLAKES.splice(i, 1); continue; }
+    ctx.globalAlpha = .85; ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(f.x, f.y, f.s, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
   if (g && g.dead) { ctx.fillStyle = 'rgba(12,14,50,.55)'; rr(ctx, 0, 0, bs, bs, 16); ctx.fill(); }
 }
 function drawTray(now) {
-  const g = S.game, iced = !!g && S.mode === 'play' && g.frozen(now);
+  const g = S.game, iced = !!g && S.mode === 'play' && g.frozen(now), st = S.scrT0 ? (now - S.scrT0) / 650 : 1;
   for (let i = 0; i < 3; i++) {
     const ctx = trayCtx[i]; if (!ctx) continue;
     ctx.clearRect(0, 0, L.tw, L.th);
@@ -812,14 +958,29 @@ function drawTray(now) {
       const s = Math.min(Math.floor(L.cell * .56), Math.floor((L.tw - 16) / Math.max(p.s.w, 3)), Math.floor((L.th - 16) / Math.max(p.s.h, 3)));
       const ok = g.dead || S.mode !== 'play' ? true : g.anyFit(p);
       const ox = (L.tw - p.s.w * s) / 2, oy = (L.th - p.s.h * s) / 2;
+      // scrambled pieces spin into place
+      const spin = st < 1 && !REDUCED;
+      if (spin) { const e = Math.max(.01, easeOutBack(Math.max(0, st))); ctx.save(); ctx.translate(L.tw / 2, L.th / 2); ctx.rotate((1 - e) * Math.PI * 2 * (i % 2 ? -1 : 1)); ctx.scale(e, e); ctx.translate(-L.tw / 2, -L.th / 2); }
       // a piece that can't fit anywhere right now is shown faded
       for (const [cx, cy] of p.s.c) block(ctx, col(p.v), ox + cx * s, oy + cy * s, s, ok ? 1 : .28);
+      if (spin) ctx.restore();
     }
     if (iced) {
-      ctx.fillStyle = 'rgba(150,220,255,.38)'; rr(ctx, 2, 2, L.tw - 4, L.th - 4, 14); ctx.fill();
-      ctx.strokeStyle = 'rgba(225,247,255,.95)'; ctx.lineWidth = 2; rr(ctx, 3, 3, L.tw - 6, L.th - 6, 13); ctx.stroke();
-      ctx.fillStyle = '#fff'; ctx.font = '700 22px Fredoka, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText('❄ ' + Math.ceil((g.ice - now) / 1000), L.tw / 2, L.th / 2);
+      const left = Math.max(0, Math.min(1, (g.ice - now) / FREEZE_MS));
+      const gr = ctx.createLinearGradient(0, 0, L.tw, L.th); gr.addColorStop(0, 'rgba(215,245,255,.62)'); gr.addColorStop(1, 'rgba(130,200,255,.42)');
+      ctx.fillStyle = gr; rr(ctx, 2, 2, L.tw - 4, L.th - 4, 14); ctx.fill();
+      const fr = (S.frost || (S.frost = makeFrost()))[i];
+      ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 1.3; ctx.lineCap = 'round'; ctx.beginPath();
+      for (const sg of fr) { ctx.moveTo(sg[0] * L.tw, sg[1] * L.th); ctx.lineTo(sg[2] * L.tw, sg[3] * L.th); }
+      ctx.stroke();
+      ctx.strokeStyle = 'rgba(235,250,255,.95)'; ctx.lineWidth = 2; rr(ctx, 3, 3, L.tw - 6, L.th - 6, 13); ctx.stroke();
+      // countdown ring: it empties as your pieces thaw
+      const cx = L.tw / 2, cy = L.th / 2, R = Math.min(L.tw, L.th) * .27;
+      ctx.fillStyle = 'rgba(20,40,110,.55)'; ctx.beginPath(); ctx.arc(cx, cy, R + 3, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.stroke();
+      ctx.strokeStyle = '#bff0ff'; ctx.beginPath(); ctx.arc(cx, cy, R, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * left); ctx.stroke();
+      ctx.fillStyle = '#fff'; ctx.font = '700 ' + Math.round(R * 1.05) + 'px Fredoka, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(String(Math.ceil((g.ice - now) / 1000)), cx, cy + 1);
     }
   }
 }
@@ -861,19 +1022,65 @@ function applyShake(dt) {
   if (shakeAmp > .4) { w.style.transform = 'translate(' + ((Math.random() * 2 - 1) * shakeAmp).toFixed(1) + 'px,' + ((Math.random() * 2 - 1) * shakeAmp).toFixed(1) + 'px)'; shakeAmp *= Math.pow(.86, dt / 16); shaken = true; }
   else if (shaken) { w.style.transform = ''; shaken = false; shakeAmp = 0; }
 }
-// an emoji that flies from one spot on screen to another (powers being thrown)
-function flyIcon(em, fromEl, toEl) {
-  if (REDUCED || !Element.prototype.animate) return;
-  const a = fromEl.getBoundingClientRect(), b = toEl.getBoundingClientRect();
-  const sx = a.left + a.width / 2 - 16, sy = a.top + a.height / 2 - 16, tx = b.left + b.width / 2 - 16, ty = b.top + b.height / 2 - 16;
-  const mx = (sx + tx) / 2 + (Math.random() - .5) * 80, my = Math.min(sy, ty) - 40;
-  const el = document.createElement('div'); el.className = 'flyer'; el.textContent = em; document.body.appendChild(el);
-  const an = el.animate([
-    { transform: 'translate(' + sx + 'px,' + sy + 'px) scale(.7) rotate(0deg)', opacity: .4 },
-    { transform: 'translate(' + mx + 'px,' + my + 'px) scale(1.5) rotate(200deg)', opacity: 1, offset: .5 },
-    { transform: 'translate(' + tx + 'px,' + ty + 'px) scale(1) rotate(360deg)', opacity: 1 }
-  ], { duration: 560, easing: 'cubic-bezier(.4,0,.6,1)' });
-  an.onfinish = () => el.remove();
+/* screen effects: powers flying across the screen with glowing trails, sparks and color flashes */
+const fxCv = $('#fxCv'); let fxCtx = null, fxW = 0, fxH = 0, fxBusy = false;
+const SHOTS = [], SPARKS = [];
+function fxLayout() {
+  const d = Math.min(2, window.devicePixelRatio || 1); fxW = window.innerWidth; fxH = window.innerHeight;
+  fxCv.width = Math.round(fxW * d); fxCv.height = Math.round(fxH * d); fxCv.style.width = fxW + 'px'; fxCv.style.height = fxH + 'px';
+  fxCtx = fxCv.getContext('2d'); fxCtx.setTransform(d, 0, 0, d, 0, 0); fxBusy = true;
+}
+function centerOf(el) { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }
+function sparkBurst(x, y, color, n, spd) {
+  if (REDUCED) n = Math.ceil(n / 3);
+  for (let i = 0; i < n && SPARKS.length < 500; i++) { const a = Math.random() * Math.PI * 2, v = (.3 + Math.random()) * (spd || .3); SPARKS.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 500 + Math.random() * 400, c: color, s: 2 + Math.random() * 3.5 }); }
+}
+// a power flying from one spot to another; onHit runs when it lands
+function shot(em, fromEl, toEl, color, spin, onHit) {
+  if (REDUCED || !fromEl || !toEl) { if (onHit) onHit(); return; }
+  const a = centerOf(fromEl), b = centerOf(toEl);
+  SHOTS.push({ em, sx: a[0], sy: a[1], tx: b[0], ty: b[1], mx: (a[0] + b[0]) / 2 + (Math.random() - .5) * 120, my: Math.min(a[1], b[1]) - 60, t0: performance.now(), dur: 620, color, spin, onHit });
+}
+function screenFlash(bg, ms) {
+  const f = $('#flash'); if (REDUCED || !f.animate) return;
+  f.style.background = bg; f.animate([{ opacity: 0 }, { opacity: 1, offset: .12 }, { opacity: 0 }], { duration: ms || 420, easing: 'ease-out' });
+}
+function drawFx(dt) {
+  if (!fxCtx) return;
+  if (!SHOTS.length && !SPARKS.length) { if (fxBusy) { fxCtx.clearRect(0, 0, fxW, fxH); fxBusy = false; } return; }
+  fxBusy = true; const ctx = fxCtx, now = performance.now();
+  ctx.clearRect(0, 0, fxW, fxH);
+  ctx.globalCompositeOperation = 'lighter';
+  for (let i = SPARKS.length - 1; i >= 0; i--) {
+    const q = SPARKS[i]; q.life -= dt; if (q.life <= 0) { SPARKS.splice(i, 1); continue; }
+    q.x += q.vx * dt; q.y += q.vy * dt; q.vx *= .985; q.vy *= .985;
+    ctx.globalAlpha = Math.min(1, q.life / 300); ctx.fillStyle = q.c; ctx.beginPath(); ctx.arc(q.x, q.y, q.s, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+  for (let i = SHOTS.length - 1; i >= 0; i--) {
+    const s = SHOTS[i], t = Math.min(1, (now - s.t0) / s.dur), e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2, u = 1 - e;
+    const x = u * u * s.sx + 2 * u * e * s.mx + e * e * s.tx, y = u * u * s.sy + 2 * u * e * s.my + e * e * s.ty;
+    for (let k = 0; k < 3; k++) SPARKS.push({ x: x + (Math.random() - .5) * 10, y: y + (Math.random() - .5) * 10, vx: (Math.random() - .5) * .06, vy: (Math.random() - .5) * .06, life: 380, c: s.color, s: 1.5 + Math.random() * 3 });
+    ctx.save(); ctx.translate(x, y); ctx.rotate(s.spin ? t * Math.PI * 5 : Math.sin(t * Math.PI * 3) * .4);
+    const sc = 1 + .8 * Math.sin(t * Math.PI); ctx.scale(sc, sc);
+    ctx.shadowColor = s.color; ctx.shadowBlur = 22; ctx.font = '30px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(s.em, 0, 1);
+    ctx.restore();
+    if (t >= 1) { SHOTS.splice(i, 1); sparkBurst(s.tx, s.ty, s.color, 30, .35); sparkBurst(s.tx, s.ty, '#ffffff', 10, .25); if (s.onHit) s.onHit(); }
+  }
+}
+// frost crystals growing in from the edges of each frozen piece slot
+function makeFrost() {
+  return [0, 1, 2].map(() => {
+    const segs = [];
+    for (let k = 0; k < 6; k++) {
+      const side = k % 4, t = Math.random();
+      const x = side === 0 ? t : side === 1 ? 1 : side === 2 ? t : 0, y = side === 0 ? 0 : side === 1 ? t : side === 2 ? 1 : t;
+      const ang = Math.atan2(.5 - y, .5 - x) + (Math.random() - .5) * .8, len = .18 + Math.random() * .22;
+      const x2 = x + Math.cos(ang) * len, y2 = y + Math.sin(ang) * len; segs.push([x, y, x2, y2]);
+      for (let b = 1; b <= 2; b++) { const f = b / 3, bx = x + (x2 - x) * f, by = y + (y2 - y) * f, bl = len * .35; for (const sd of [-1, 1]) segs.push([bx, by, bx + Math.cos(ang + sd * .7) * bl, by + Math.sin(ang + sd * .7) * bl]); }
+    }
+    return segs;
+  });
 }
 function oppNote(t, ms) { S.oppNote = { t, until: Date.now() + (ms || 2200) }; }
 function hintNote(t, ms) { S.hintNote = { t, until: Date.now() + (ms || 2200) }; }
@@ -904,7 +1111,7 @@ function renderHud(now, o) {
   const pk = pw + ':' + nx + ':' + bombs + ':' + waiting;
   if (hud.pk !== pk) {
     hud.pk = pk;
-    $('#pwFill').style.width = pw + '%';
+    $('#pwFill').style.width = pw + '%'; $('.pmeter').classList.toggle('hot', pw >= 75);
     const pc = $('#pwCount'); pc.textContent = pw + '%'; pc.classList.toggle('on', pw >= FULL);
     for (const [id, k] of [['#pFreeze', 'freeze'], ['#pScramble', 'scramble'], ['#pBomb', 'bomb']]) { const el = $(id); el.classList.toggle('next', nx === k); el.classList.toggle('glow', nx === k && waiting); }
     $('#pBomb').classList.toggle('has', bombs > 0);
@@ -918,7 +1125,7 @@ function renderHud(now, o) {
   else if (g.dead) hint = 'You ran out of room.';
   else if (S.hintNote && now < S.hintNote.until) { hint = S.hintNote.t; cls = 'warn'; }
   else if (g.frozen(now)) { hint = 'Frozen! Your pieces thaw in ' + Math.ceil((g.ice - now) / 1000) + 's'; cls = 'ice'; }
-  else if (g.moves < 4 && !g.fills) { hint = 'Clears fill your meter. When it\u2019s full, a power fires by itself!'; }
+  else if (g.moves < 4 && !g.fills) { hint = 'Clears fill your meter. Full = automatic power!'; }
   else if (cb > 0) hint = 'Combo x' + cb + ': clear again within ' + cl + (cl === 1 ? ' move!' : ' moves');
   else if (g.moves === 0) hint = 'Drag a piece onto the board.';
   else hint = 'Clear lines to score and charge your powers.';
@@ -941,6 +1148,8 @@ function renderHud(now, o) {
     S.lastOppCb = o.cb;
   }
   setText($('#oppInc'), 'oi', oi);
+  const fz = !!(o && o.fz && live);
+  if (hud.ofz !== fz) { hud.ofz = fz; $('#oppCard').classList.toggle('frosted', fz); }
   if (hud.ocls !== ocls) { hud.ocls = ocls; $('#oppInc').className = 'oppInc' + (ocls ? ' ' + ocls : ''); }
   const wk = (S.vsCpu ? S.cpuWins : S.wins) + '–' + (o ? o.w : 0);
   if (hud.wk !== wk) { hud.wk = wk; const w = $('#wins'); w.textContent = ''; const s = document.createElement('small'); s.textContent = 'Wins'; w.append(s, wk); }
@@ -996,37 +1205,41 @@ function afterPlace(info) {
   if (info.saves && info.saves.length) setTimeout(() => info.saves.forEach(sv => afterBomb(sv)), 350);
 }
 function afterBomb(info) {
-  const c = L.cell, p = L.pad, now = Date.now();
-  sfx.boom(); kick(16); buzz([40, 30, 90]);
-  for (const cl of info.cleared) {
-    const kx = cl.k % N, ky = (cl.k / N) | 0, color = col(cl.v);
-    CLEARS.push({ k: cl.k, col: color, t0: now, delay: 0 });
-    burst(p + (kx + .5) * c, p + (ky + .5) * c, color, 6, .3, 800);
-  }
-  burst(p + (info.x + 1.5) * c, p + (info.y + 1.5) * c, '#ffd234', 26, .42, 900);
-  burst(p + (info.x + 1.5) * c, p + (info.y + 1.5) * c, '#ff4f63', 18, .34, 800);
-  praise('BOOM!', 'Your bomb saved you!', 'red');
+  const c = L.cell, p = L.pad, now = Date.now(), cx = p + (info.x + 1.5) * c, cy = p + (info.y + 1.5) * c, fuse = REDUCED ? 0 : 700;
+  // the blocks stay put while the fuse burns, then blow away
+  for (const cl of info.cleared) CLEARS.push({ k: cl.k, col: col(cl.v), t0: now, delay: fuse + Math.random() * 60 });
+  if (fuse) { BOMBS.push({ x: cx, y: cy, t0: now, dur: fuse, area: [p + info.x * c, p + info.y * c, 3 * c] }); sfx.fuse(); praise('', '\ud83d\udca3 Your bomb is going off!', 'gold'); }
   sendPower('bomb');
+  setTimeout(() => {
+    sfx.boom(); kick(18); buzz([40, 30, 90]);
+    screenFlash('radial-gradient(circle at 50% 55%, rgba(255,220,120,.75), rgba(255,90,60,.35) 60%, rgba(0,0,0,0))', 480);
+    for (const cl of info.cleared) { const kx = cl.k % N, ky = (cl.k / N) | 0; burst(p + (kx + .5) * c, p + (ky + .5) * c, col(cl.v), 7, .34, 850); }
+    burst(cx, cy, '#ffd234', 30, .45, 950); burst(cx, cy, '#ff4f63', 22, .36, 850); burst(cx, cy, '#ffffff', 10, .5, 500);
+    const t = Date.now();
+    RINGS.push({ x: cx, y: cy, r: c * 4.2, w: 10, c: '#ffd234', t0: t, dur: 520 }, { x: cx, y: cy, r: c * 3, w: 6, c: '#ffffff', t0: t + 80, dur: 420 });
+    praise('BOOM!', 'Your bomb saved you!', 'red');
+  }, fuse);
 }
 // your meter filled: the next power goes off on its own
 function myPowerFired(kind) {
-  const now = Date.now();
+  const meter = $('.pmeter');
+  flash(meter, 'dump');
   if (kind === 'bomb') {
-    sfx.ready(); flash($('#pBomb'), 'bump');
+    sfx.ready();
+    shot('\ud83d\udca3', meter, $('#pBomb'), '#ffd234', false, () => { flash($('#pBomb'), 'launch'); sfx.coin(0); });
     praise('', '\ud83d\udca3 Bomb saved! It goes off by itself if you get stuck', 'gold');
     return;
   }
   sfx.fire(); buzz(15);
-  const src = $(kind === 'freeze' ? '#pFreeze' : '#pScramble');
-  flash(src, 'bump');
-  flyIcon(kind === 'freeze' ? '\u2744\ufe0f' : '\ud83c\udf00', src, $('#oppCard'));
-  setTimeout(() => flash($('#oppCard'), 'hit'), 480);
-  praise('', kind === 'freeze' ? '\u2744\ufe0f Freeze sent!' : '\ud83c\udf00 Scramble sent!', kind === 'freeze' ? 'ice' : 'pink');
-  if (S.vsCpu) {
-    const c = S.cpu;
-    setTimeout(() => { if (!c || c.dead || S.cpu !== c || S.mode !== 'play') return; if (kind === 'freeze') c.freeze(Date.now()); else { c.scramble(); c.rescue(); } }, 450);
-  } else sendPower(kind);
-  oppNote(kind === 'freeze' ? '\u2744\ufe0f You froze them!' : '\ud83c\udf00 You scrambled them!');
+  const ice = kind === 'freeze', src = $(ice ? '#pFreeze' : '#pScramble'), c = S.cpu, vs = S.vsCpu;
+  flash(src, 'launch');
+  praise('', ice ? '\u2744\ufe0f Freeze sent!' : '\ud83c\udf00 Scramble sent!', ice ? 'ice' : 'pink');
+  if (!vs) sendPower(kind);
+  shot(ice ? '\u2744\ufe0f' : '\ud83c\udf00', src, $('#oppCard'), ice ? '#9fe3ff' : '#d08bff', !ice, () => {
+    flash($('#oppCard'), ice ? 'hit' : 'wobble');
+    if (vs && c && !c.dead && S.cpu === c && S.mode === 'play') { if (ice) c.freeze(Date.now()); else { c.scramble(); c.rescue(); } }
+  });
+  oppNote(ice ? '\u2744\ufe0f You froze them!' : '\ud83c\udf00 You scrambled them!');
 }
 function sendPower(kind) {
   if (S.vsCpu || !S.mid) return;
@@ -1034,23 +1247,29 @@ function sendPower(kind) {
   if (S.pwOut.length > 8) S.pwOut.shift();
   lastFlush = 0; flushPresence(Date.now());
 }
-// the other player hit you with a power
+// the other player hit you with a power: it flies over from their card and lands on your pieces
 function hitMe(kind, from) {
   const g = S.game; if (!g || g.dead || S.mode !== 'play') return;
-  if (drag) cancelDrag();
-  flyIcon(kind === 'freeze' ? '❄️' : '🌀', $('#oppCard'), $('#tray'));
-  setTimeout(() => {
+  const ice = kind === 'freeze';
+  shot(ice ? '\u2744\ufe0f' : '\ud83c\udf00', $('#oppCard'), $('#tray'), ice ? '#9fe3ff' : '#d08bff', !ice, () => {
     if (S.game !== g || g.dead || S.mode !== 'play') return;
     if (drag) cancelDrag();
-    if (kind === 'freeze') { g.freeze(Date.now()); sfx.ice(); praise('Frozen!', from + ' froze your pieces', 'ice'); buzz([30, 40, 30]); }
-    else { g.scramble(); sfx.scramble(); praise('Scrambled!', from + ' swapped your pieces', 'pink'); flash($('#tray'), 'shake'); buzz(70); const saves = g.rescue(); saves.forEach(sv => afterBomb(sv)); }
+    if (ice) {
+      g.freeze(Date.now()); S.frost = makeFrost(); sfx.ice(); buzz([30, 40, 30]);
+      praise('Frozen!', from + ' froze your pieces', 'ice'); screenFlash('rgba(160,225,255,.45)', 520);
+    } else {
+      g.scramble(); S.scrT0 = Date.now(); sfx.scramble(); buzz(70); flash($('#tray'), 'shake');
+      praise('Scrambled!', from + ' swapped your pieces', 'pink'); screenFlash('rgba(190,110,255,.35)', 460);
+      for (const cv of trayCv) { const pt = centerOf(cv); sparkBurst(pt[0], pt[1], '#d08bff', 14, .3); }
+      const saves = g.rescue(); saves.forEach(sv => afterBomb(sv));
+    }
     kick(6);
-  }, REDUCED ? 0 : 450);
+  });
 }
 function hideScreens() { $('#lobby').hidden = true; $('#result').hidden = true; }
 let wakeLock = null;
 function keepAwake() { try { navigator.wakeLock && navigator.wakeLock.request('screen').then(w => { wakeLock = w; }).catch(() => {}); } catch (e) {} }
-function resetFx() { PARTS.length = 0; POPS.length = 0; CLEARS.length = 0; $('#praise').textContent = ''; $('#floats').textContent = ''; drag = null; cvD.hidden = true; }
+function resetFx() { PARTS.length = 0; POPS.length = 0; CLEARS.length = 0; RINGS.length = 0; BOMBS.length = 0; FLAKES.length = 0; SHOTS.length = 0; SPARKS.length = 0; S.frost = null; S.scrT0 = 0; S.wasIced = false; $('#praise').textContent = ''; $('#floats').textContent = ''; drag = null; cvD.hidden = true; }
 let countShown = null;
 function beginCountdown() {
   resetFx();
@@ -1059,6 +1278,7 @@ function beginCountdown() {
   countShown = null; $('#count').textContent = '3';
   hideScreens(); $('#count').hidden = false; hud = {};
   requestAnimationFrame(layout); keepAwake();
+  musicStop(); musicStart();
 }
 function startCpu() {
   if (S.mode === 'countdown' || S.mode === 'play' || S.mode === 'timeup') return;
@@ -1100,7 +1320,7 @@ function settle(their) {
 // meWon: true, false, or null for a tie
 function endRound(meWon, reason, theirScore) {
   if (S.mode === 'over') return;
-  S.mode = 'over'; S.go = null;
+  S.mode = 'over'; S.go = null; musicStop();
   if (meWon === true) { if (S.vsCpu) S.cpuWins++; else S.wins++; } else if (meWon === false && S.vsCpu) S.oppWinsCpu++;
   if (!S.vsCpu) S.netSt = 'done';
   drag = null; cvD.hidden = true;
@@ -1176,7 +1396,7 @@ function showRewards(rw) {
 }
 function toLobby() {
   S.mode = 'lobby'; S.mid = null; S.go = null; S.opp = null; S.cpu = null; S.game = null; S.vsCpu = false; S.netSt = 'lobby';
-  resetFx(); hideScreens(); $('#count').hidden = true; $('#lobby').hidden = false;
+  resetFx(); hideScreens(); $('#count').hidden = true; $('#lobby').hidden = false; musicStop();
   if (wakeLock) { try { wakeLock.release(); } catch (e) {} wakeLock = null; }
   hud = {}; lobbySig = ''; renderLobby(); renderProfile(); draw(Date.now());
 }
@@ -1253,7 +1473,7 @@ function pollNet(now) {
     if (!Array.isArray(e)) continue;
     const sq = num(e[0]); if (sq <= S.pwIn) continue;
     S.pwIn = sq;
-    if (e[1] === 'bomb') oppNote('\ud83d\udca3 ' + from + '\u2019s bomb saved them');
+    if (e[1] === 'bomb') { oppNote('\ud83d\udca3 ' + from + '\u2019s bomb saved them'); const pt = centerOf($('#oppCard')); sparkBurst(pt[0], pt[1], '#ffb35a', 22, .3); flash($('#oppCard'), 'wobble'); }
     else if ((e[1] === 'freeze' || e[1] === 'scramble') && pr.tg === pkey(NET.me)) hitMe(e[1], from);
   }
 }
@@ -1404,7 +1624,7 @@ function startDrag(i, e) {
   const g = S.game; if (!g || S.mode !== 'play' || g.dead || drag) return false;
   const p = g.tray[i]; if (!p) return false;
   if (g.frozen(Date.now())) { sfx.bad(); hintNote('Frozen! Wait for your pieces to thaw.', 1200); return false; }
-  audioInit(); sfx.pick();
+  audioInit(); sfx.pick(); buzz(6);
   drag = { i, p, id: e.pointerId, gx: null, gy: null };
   const c = L.cell;
   ctxD = setupCanvas(cvD, p.s.w * c, p.s.h * c);
@@ -1495,8 +1715,18 @@ function autoSearch() {
   if (!PRIVATE || autoSearched || S.mode !== 'lobby' || NET.avail !== 'yes' || !NET.me) return;
   autoSearched = true; search();
 }
-function paintSnd() { $('#sndWave').style.display = SND.on ? '' : 'none'; $('#sndBtn').setAttribute('aria-label', SND.on ? 'Sound on' : 'Sound off'); }
-$('#sndBtn').addEventListener('click', () => { SND.on = !SND.on; store('gd_snd', SND.on ? '1' : '0'); paintSnd(); if (SND.on) { audioInit(); sfx.pick(); } });
+function paintSnd() {
+  $('#sndWave').style.display = SND.on ? '' : 'none'; $('#sndBtn').setAttribute('aria-label', SND.on ? 'Sound on' : 'Sound off');
+  $('#musX').style.display = SND.music && SND.on ? 'none' : ''; $('#musBtn').setAttribute('aria-label', SND.music ? 'Music on' : 'Music off');
+  $('#tgSound').setAttribute('aria-pressed', String(SND.on)); $('#tgMusic').setAttribute('aria-pressed', String(SND.music)); $('#tgVib').setAttribute('aria-pressed', String(SND.vib));
+}
+function setSound(on) { SND.on = on; store('gd_snd', on ? '1' : '0'); paintSnd(); if (on) { audioInit(); sfx.pick(); if (inRound()) musicStart(); } else musicStop(); }
+function setMusic(on) { SND.music = on; store('gd_music', on ? '1' : '0'); paintSnd(); if (on && inRound()) musicStart(); else if (!on) musicStop(); }
+$('#sndBtn').addEventListener('click', () => setSound(!SND.on));
+$('#tgSound').addEventListener('click', () => setSound(!SND.on));
+$('#musBtn').addEventListener('click', () => setMusic(!SND.music));
+$('#tgMusic').addEventListener('click', () => setMusic(!SND.music));
+$('#tgVib').addEventListener('click', () => { SND.vib = !SND.vib; store('gd_vib', SND.vib ? '1' : '0'); paintSnd(); buzz(30); });
 paintSnd();
 let quitArm = 0;
 $('#quitBtn').addEventListener('click', () => {
@@ -1532,9 +1762,13 @@ function frame(t) {
     if (S.vsCpu && S.cpu && !S.cpu.dead && S.mode === 'play') cpuTick(now, dt);
     // full meters fire on their own
     if (g && !g.dead && S.mode === 'play') { const k = g.autoFire(now); if (k) myPowerFired(k); }
+    // the ice shatters when your pieces thaw
+    if (g && g.frozen(now)) S.wasIced = true;
+    else if (g && S.wasIced) { S.wasIced = false; S.frost = null; sfx.thaw(); praise('', 'Thawed!', 'ice'); for (const cv of trayCv) { const pt = centerOf(cv); sparkBurst(pt[0], pt[1], '#bff0ff', 18, .32); sparkBurst(pt[0], pt[1], '#ffffff', 8, .22); } }
     if (S.vsCpu && S.cpu && !S.cpu.dead && S.mode === 'play') { const k = S.cpu.autoFire(now); if (k === 'bomb') oppNote('\ud83d\udca3 They saved a bomb'); else if (k) hitMe(k, 'The computer'); }
     const left = S.roundEnd - now;
     if (left > 0 && left <= 5000) { const sec = Math.ceil(left / 1000); if (sec !== S.lastTick) { S.lastTick = sec; sfx.tick(); } }
+    if (!MUS.fast && left <= 30000) { MUS.fast = true; praise('', '30 seconds left!', 'gold'); }
     if (S.mode === 'play' && g && !g.dead) {
       if (S.vsCpu) { if (S.cpu && S.cpu.dead) endRound(true, 'stuck'); }
       else { const o = oppView(now); if (o && !o.alive) endRound(true, o.here && o.inM ? 'stuck' : 'left'); }
@@ -1555,6 +1789,7 @@ function frame(t) {
     endRound(meWon, why);
   }
   draw(now);
+  drawFx(dt);
   applyShake(dt);
   if (now - lastNet > 200) { lastNet = now; autoSearch(); netTick(now); if (S.mode === 'lobby' || S.mode === 'search') renderLobby(); }
   requestAnimationFrame(frame);
@@ -1563,7 +1798,8 @@ let hiddenAt = 0;
 document.addEventListener('visibilitychange', () => {
   // tell the other player right away whether this game is on screen
   lastFlush = 0; flushPresence(Date.now());
-  if (document.hidden) { hiddenAt = Date.now(); return; }
+  if (document.hidden) { hiddenAt = Date.now(); musicStop(); return; }
+  if (inRound()) { const f = MUS.fast; musicStart(); MUS.fast = f; }
   if (!hiddenAt) return;
   const wentAt = hiddenAt, away = Date.now() - wentAt; hiddenAt = 0;
   if (S.vsCpu) {
