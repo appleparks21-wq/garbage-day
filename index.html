@@ -365,6 +365,7 @@ const ROUND_MS = 120000;       // a round lasts 2 minutes; most points wins
 const COMBO_MOVES = 3;         // clear again within this many moves to keep a combo alive
 const FULL = 100, MAX_POWER = 200, FREEZE_MS = 5000;
 const ATTACK_GAP = 10000;      // Freeze and Scramble need 10 seconds to recharge after you fire one
+const START_POWER = 50;        // every round starts with the power meter half full
 function shape(cells, w) { const xs = cells.map(c => c[0]), ys = cells.map(c => c[1]); return { c: cells, w: Math.max(...xs) + 1, h: Math.max(...ys) + 1, wt: w }; }
 const SHAPES = [
   shape([[0,0]], 2),
@@ -423,7 +424,7 @@ class Board {
     this.tray[i] = null; this.moves++;
     const { rows, cols } = fullLines(this.b), n = rows.length + cols.length;
     const cleared = [], hadCombo = this.combo;
-    let gain = p.s.c.length, charge = 0, pc = false;
+    let gain = p.s.c.length, charge = 2, pc = false;
     if (n) {
       const seen = new Set();
       for (const r of rows) for (let c = 0; c < N; c++) seen.add(r * N + c);
@@ -433,9 +434,9 @@ class Board {
       if (this.combo > this.bestCombo) this.bestCombo = this.combo;
       pc = this.b.every(v => !v);
       gain += lineScore(n) * this.combo + (pc ? 300 : 0);
-      charge = n * 8 * Math.min(this.combo, 4) + (pc ? 40 : 0);
-      this.power = Math.min(MAX_POWER, this.power + charge);
+      charge += n * 20 * Math.min(this.combo, 3) + (pc ? 40 : 0);
     } else if (this.combo && --this.comboLeft <= 0) { this.combo = 0; this.comboLeft = 0; }
+    this.power = Math.min(MAX_POWER, this.power + charge);
     this.score += gain;
     if (this.tray.every(t => !t)) this.deal();
     if (!this.canMove()) this.die('stuck');
@@ -484,8 +485,8 @@ function densest3(b) {
 /* ================= computer player ================= */
 // top: picks randomly among its best N moves; aggro: how eagerly it fires powers at you
 const CPU = {
-  easy:   { ms: 3800, top: 3, look: false, slip: .2,  aggro: .3, gap: 25000, smart: false, label: 'Easy' },
-  normal: { ms: 3000, top: 2, look: true,  slip: .08, aggro: .5, gap: 18000, smart: true,  label: 'Normal' },
+  easy:   { ms: 4500, top: 2, look: true,  slip: .15, aggro: .3, gap: 30000, smart: false, label: 'Easy' },
+  normal: { ms: 3000, top: 2, look: true,  slip: .08, aggro: .5, gap: 20000, smart: true,  label: 'Normal' },
   hard:   { ms: 2300, top: 1, look: true,  slip: 0,   aggro: .8, gap: 12000, smart: true,  label: 'Hard' }
 };
 function fitsBox(b, w, h) {
@@ -901,6 +902,8 @@ function renderHud(now, o) {
   if (g && S.mode === 'play') {
     if (ch > S.lastCharges) {
       sfx.ready();
+      // the first power of a round gets a big callout so nobody misses it
+      if (!S.toldPower) { S.toldPower = true; setTimeout(() => { if (S.mode === 'play') praise('Power ready!', 'Tap \u2744\ufe0f or \ud83c\udf00, or drag the \ud83d\udca3', 'gold'); }, 650); }
       for (const id of ['#bombBtn', '#freezeBtn', '#scrambleBtn']) $(id).classList.add('glow');
       clearTimeout(renderHud.glowT); renderHud.glowT = setTimeout(() => { for (const id of ['#bombBtn', '#freezeBtn', '#scrambleBtn']) $(id).classList.remove('glow'); }, 2600);
     }
@@ -968,6 +971,7 @@ function oppView(now) {
 }
 function makeGame(seed, mine) {
   const g = new Board(seed);
+  g.power = START_POWER;
   if (mine) g.onDead = reason => onMyDeath(reason);
   return g;
 }
@@ -1050,7 +1054,7 @@ function beginCountdown() {
   resetFx();
   S.mode = 'countdown'; S.countEnd = Date.now() + 3000; S.roundStartedAt = Date.now();
   S.myDe = null; S.myReason = ''; S.lastCharges = 0; S.oppNote = null; S.hintNote = null; S.lastOppCb = 0;
-  S.atkAt = 0; S.cpuAtkAt = Date.now() + 15000;
+  S.atkAt = 0; S.cpuAtkAt = Date.now() + 15000; S.toldPower = false;
   countShown = null; $('#count').textContent = '3';
   hideScreens(); $('#count').hidden = false; hud = {};
   requestAnimationFrame(layout); keepAwake();
