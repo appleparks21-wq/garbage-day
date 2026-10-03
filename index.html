@@ -82,13 +82,15 @@ canvas{display:block}
 .pcount{font-family:var(--disp);font-weight:700;font-size:13px;color:var(--ink3);min-width:28px;text-align:right;font-variant-numeric:tabular-nums}
 .pcount.on{color:#7ff3ff}
 .pbtns{display:flex;gap:6px}
-.pbtn{position:relative;width:56px;height:46px;border:0;border-radius:12px;padding:0;background:rgba(18,25,86,.85);box-shadow:inset 0 0 0 2px rgba(120,140,255,.2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;touch-action:none;color:var(--ink3)}
+.pbtn{position:relative;width:56px;height:46px;border-radius:12px;background:rgba(18,25,86,.85);box-shadow:inset 0 0 0 2px rgba(120,140,255,.2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--ink3);transition:transform .2s}
 .pbtn .em{font-size:20px;line-height:1;filter:grayscale(1);opacity:.45}
 .pbtn small{font-size:9px;font-weight:800;letter-spacing:.02em;text-transform:uppercase}
-.pbtn.ready{background:linear-gradient(#6f8bff,#4a63e6);box-shadow:0 4px 0 #2d3fa8;color:#fff}
-.pbtn.ready .em{filter:none;opacity:1}
-.pbtn.ready:active{transform:translateY(3px);box-shadow:0 1px 0 #2d3fa8}
-.pbtn.glow{animation:glow 1s ease-in-out infinite}
+.pbtn.next{background:linear-gradient(#6f8bff,#4a63e6);box-shadow:0 4px 0 #2d3fa8;color:#fff;transform:translateY(-2px)}
+.pbtn.next .em,.pbtn.has .em{filter:none;opacity:1}
+.pbtn.has{box-shadow:inset 0 0 0 2px var(--gold);color:var(--gold)}
+.pbtn.next.has{box-shadow:0 4px 0 #2d3fa8,inset 0 0 0 2px var(--gold)}
+.pbtn.glow{animation:glow .6s ease-in-out infinite}
+.bcount{position:absolute;top:-6px;right:-6px;min-width:19px;height:19px;border-radius:999px;background:var(--gold);color:#2a1a00;font:700 12px/19px var(--disp);text-align:center;padding:0 5px;box-shadow:0 2px 0 #b88a00}
 @keyframes glow{50%{box-shadow:0 4px 0 #2d3fa8,0 0 18px 5px rgba(127,243,255,.7)}}
 .hint{grid-column:1/-1;font-size:13.5px;font-weight:800;color:var(--ink2);text-align:center;min-height:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hint.warn{color:#fff}
@@ -240,11 +242,11 @@ canvas{display:block}
       <div class="comboSlot"><span class="combo" id="combo" hidden><b id="comboTxt">Combo x2</b><span class="pips" id="pips"><i></i><i></i><i></i></span></span></div>
     </div>
     <div class="powers">
-      <div class="pmeterRow"><div class="pmeter" aria-hidden="true"><i id="pwFill"></i></div><span class="pcount" id="pwCount">⚡0</span></div>
-      <div class="pbtns">
-        <button class="pbtn" id="bombBtn" aria-label="Bomb: drag it onto your board"><span class="em">💣</span><small>Bomb</small></button>
-        <button class="pbtn" id="freezeBtn" aria-label="Freeze their pieces"><span class="em">❄️</span><small>Freeze</small></button>
-        <button class="pbtn" id="scrambleBtn" aria-label="Scramble their pieces"><span class="em">🌀</span><small>Scramble</small></button>
+      <div class="pmeterRow"><div class="pmeter" aria-hidden="true"><i id="pwFill"></i></div><span class="pcount" id="pwCount">50%</span></div>
+      <div class="pbtns" id="pbtns" role="img" aria-label="Power meter. When it fills, the lit power fires by itself.">
+        <div class="pbtn" id="pFreeze"><span class="em">❄️</span><small>Freeze</small></div>
+        <div class="pbtn" id="pScramble"><span class="em">🌀</span><small>Scramble</small></div>
+        <div class="pbtn" id="pBomb"><span class="em">💣</span><small>Bomb</small><b class="bcount" id="bombCount" hidden>1</b></div>
       </div>
     </div>
     <div class="hint" id="hint">Drag a piece onto the board.</div>
@@ -321,8 +323,8 @@ canvas{display:block}
         <ol class="how">
           <li><span class="n">1</span><div><b>Drag pieces onto your board</b><span>You get 3 at a time. Place all 3 to get 3 more.</span></div></li>
           <li><span class="n">2</span><div><b>Clear lines and build combos</b><span>Fill a row or column to clear it. Clear again within 3 moves to keep your combo going. Combos multiply your points.</span></div></li>
-          <li><span class="n">3</span><div><b>Use your powers</b><span>Clears charge your power meter, and combos charge it faster. 💣 Bomb: drag it onto your board to blow up a 3×3 area. ❄️ Freeze: their pieces freeze for 5 seconds. 🌀 Scramble: their pieces turn into big ugly ones. Freeze and Scramble need 10 seconds to recharge.</span></div></li>
-          <li><span class="n">4</span><div><b>Win the round</b><span>Most points after 2:00 wins. If none of your pieces fit and you have no bomb, you lose right away.</span></div></li>
+          <li><span class="n">3</span><div><b>Powers fire by themselves</b><span>Clears fill your power meter, and combos fill it faster. Every time it fills, the lit power goes off on its own, in this order: ❄️ Freeze (their pieces freeze for 5 seconds), 🌀 Scramble (their pieces turn big and ugly), then 💣 Bomb (saved for you, and if you get stuck it blows up a 3×3 spot so you can keep going).</span></div></li>
+          <li><span class="n">4</span><div><b>Win the round</b><span>Most points after 2:00 wins. If none of your pieces fit and you have no bomb saved, you lose right away.</span></div></li>
           <li><span class="n">5</span><div><b>Earn rewards</b><span>Every game gives coins and XP. Spend coins on block skins. Online wins also earn trophies and raise your rank.</span></div></li>
         </ol>
       </div>
@@ -364,7 +366,9 @@ const N = 8;
 const ROUND_MS = 120000;       // a round lasts 2 minutes; most points wins
 const COMBO_MOVES = 3;         // clear again within this many moves to keep a combo alive
 const FULL = 100, MAX_POWER = 200, FREEZE_MS = 5000;
-const ATTACK_GAP = 10000;      // Freeze and Scramble need 10 seconds to recharge after you fire one
+const AUTO_GAP = 8000;         // at least 8 seconds between automatic attacks
+const CYCLE = ['freeze', 'scramble', 'bomb'];   // what a full meter fires, in turn
+const MAX_BOMBS = 2;
 const START_POWER = 50;        // every round starts with the power meter half full
 function shape(cells, w) { const xs = cells.map(c => c[0]), ys = cells.map(c => c[1]); return { c: cells, w: Math.max(...xs) + 1, h: Math.max(...ys) + 1, wt: w }; }
 const SHAPES = [
@@ -396,6 +400,7 @@ class Board {
     this.b = new Uint8Array(N * N); this.rng = mulberry32(seed >>> 0);
     this.score = 0; this.combo = 0; this.comboLeft = 0; this.bestCombo = 0; this.lines = 0; this.moves = 0;
     this.power = 0; this.used = 0; this.ice = 0; this.dead = false; this.reason = ''; this.onDead = null;
+    this.fills = 0; this.bombs = 0; this.lastAtk = 0; this.chargeMul = 1;
     this.tray = []; this.deal();
   }
   gen() { let r = this.rng() * TOTALW; for (const s of SHAPES) { r -= s.wt; if (r <= 0) return { s, v: 1 + Math.floor(this.rng() * 8) }; } return { s: SHAPES[0], v: 1 }; }
@@ -410,10 +415,10 @@ class Board {
   fits(p, x, y) { for (const [cx, cy] of p.s.c) { const X = x + cx, Y = y + cy; if (X < 0 || Y < 0 || X >= N || Y >= N || this.b[Y * N + X]) return false; } return true; }
   anyFit(p) { for (let y = 0; y <= N - p.s.h; y++) for (let x = 0; x <= N - p.s.w; x++) if (this.fits(p, x, y)) return true; return false; }
   pieceFits() { return this.tray.some(p => p && this.anyFit(p)); }
-  // you're only out when nothing fits AND you have no bomb to make room
-  canMove() { return this.pieceFits() || this.power >= FULL; }
+  // you're only out when nothing fits AND you have no bomb saved
+  canMove() { return this.pieceFits() || this.bombs > 0; }
   frozen(now) { return now < this.ice; }
-  charges() { return Math.floor(this.power / FULL); }
+  nextKind() { return CYCLE[this.fills % CYCLE.length]; }
   preview(p, x, y) {
     const b = this.b.slice(); for (const [cx, cy] of p.s.c) b[(y + cy) * N + x + cx] = p.v;
     return fullLines(b);
@@ -436,23 +441,35 @@ class Board {
       gain += lineScore(n) * this.combo + (pc ? 300 : 0);
       charge += n * 20 * Math.min(this.combo, 3) + (pc ? 40 : 0);
     } else if (this.combo && --this.comboLeft <= 0) { this.combo = 0; this.comboLeft = 0; }
-    this.power = Math.min(MAX_POWER, this.power + charge);
+    this.power = Math.min(MAX_POWER, this.power + Math.round(charge * this.chargeMul));
     this.score += gain;
     if (this.tray.every(t => !t)) this.deal();
-    if (!this.canMove()) this.die('stuck');
-    return { n, rows, cols, cleared, combo: this.combo, broke: hadCombo > 0 && !this.combo, gain, charge, pc, p, x, y };
+    const saves = this.rescue();
+    return { n, rows, cols, cleared, combo: this.combo, broke: hadCombo > 0 && !this.combo, gain, charge, pc, p, x, y, saves };
   }
-  // blow up a 3x3 area of your own board
-  bomb(x, y) {
-    if (this.dead || this.power < FULL || x < 0 || y < 0 || x > N - 3 || y > N - 3) return null;
-    this.power -= FULL; this.used++;
+  // stuck? a saved bomb goes off by itself on the most crowded 3x3 spot; no bomb means you're out
+  rescue() {
+    const saves = [];
+    while (!this.dead && !this.pieceFits() && this.bombs > 0) { const d = densest3(this.b); this.bombs--; saves.push(this.blast(d.x, d.y)); }
+    if (!this.dead && !this.pieceFits()) this.die('stuck');
+    return saves;
+  }
+  blast(x, y) {
     const cleared = [];
     for (let r = y; r < y + 3; r++) for (let c = x; c < x + 3; c++) { const k = r * N + c; if (this.b[k]) { cleared.push({ k, v: this.b[k] }); this.b[k] = 0; } }
-    const gain = cleared.length * 2; this.score += gain;
-    if (!this.canMove()) this.die('stuck');
+    const gain = cleared.length * 2; this.score += gain; this.used++;
     return { cleared, gain, x, y };
   }
-  spend() { if (this.dead || this.power < FULL) return false; this.power -= FULL; this.used++; return true; }
+  // a full meter fires the next power on its own; returns what fired, or null
+  autoFire(now) {
+    if (this.dead || this.power < FULL) return null;
+    const kind = this.nextKind();
+    if (kind !== 'bomb' && now - this.lastAtk < AUTO_GAP) return null;
+    this.power -= FULL; this.fills++;
+    if (kind === 'bomb') this.bombs = Math.min(MAX_BOMBS, this.bombs + 1);
+    else { this.lastAtk = now; this.used++; }
+    return kind;
+  }
   freeze(now) { this.ice = Math.min(now + 10000, Math.max(this.ice, now) + FREEZE_MS); }
   scramble() {
     for (let i = 0; i < 3; i++) if (this.tray[i]) this.tray[i] = { s: UGLY[Math.floor(Math.random() * UGLY.length)], v: 1 + Math.floor(Math.random() * 8) };
@@ -483,11 +500,11 @@ function densest3(b) {
 }
 
 /* ================= computer player ================= */
-// top: picks randomly among its best N moves; aggro: how eagerly it fires powers at you
+// top: picks randomly among its best N moves; charge: how fast its power meter fills compared to yours
 const CPU = {
-  easy:   { ms: 4500, top: 2, look: true,  slip: .15, aggro: .3, gap: 30000, smart: false, label: 'Easy' },
-  normal: { ms: 3000, top: 2, look: true,  slip: .08, aggro: .5, gap: 20000, smart: true,  label: 'Normal' },
-  hard:   { ms: 2300, top: 1, look: true,  slip: 0,   aggro: .8, gap: 12000, smart: true,  label: 'Hard' }
+  easy:   { ms: 4500, top: 2, look: true,  slip: .15, charge: .55, label: 'Easy' },
+  normal: { ms: 3000, top: 2, look: true,  slip: .08, charge: .8,  label: 'Normal' },
+  hard:   { ms: 2300, top: 1, look: true,  slip: 0,   charge: 1,   label: 'Hard' }
 };
 function fitsBox(b, w, h) {
   for (let r = 0; r <= N - h; r++) for (let c = 0; c <= N - w; c++) {
@@ -657,7 +674,7 @@ const S = {
   mid: null, go: null, opp: null, usedMids: new Set(), netSt: 'lobby', name: '', wins: 0, cpuWins: 0, oppWinsCpu: 0,
   countEnd: 0, roundStartedAt: 0, playStart: 0, roundEnd: 0, timeupAt: 0, lastTick: 0,
   myDe: null, myReason: '', waitUntil: 0, seen: 0, lastPr: {},
-  pwOut: [], pwSeq: 0, pwIn: 0, lastCharges: 0, atkAt: 0, cpuAtkAt: 0, usedAny: false, oppNote: null, hintNote: null, lastOppCb: 0
+  pwOut: [], pwSeq: 0, pwIn: 0, oppNote: null, hintNote: null, lastOppCb: 0
 };
 const NET = { room: null, me: null, peers: [], avail: 'pending' };
 const NAMES = ['Blaster', 'Stacker', 'Smasher', 'Dumpster', 'Rubble', 'Brick', 'Crusher', 'Scrapper'];
@@ -740,9 +757,9 @@ function drawBoard(now, dt) {
   }
   if (g) {
     // ghost preview and the lines it would clear
-    if (drag && !drag.bomb && drag.gx != null && !g.fits(drag.p, drag.gx, drag.gy)) { drag.gx = null; drag.gy = null; }
+    if (drag && drag.gx != null && !g.fits(drag.p, drag.gx, drag.gy)) { drag.gx = null; drag.gy = null; }
     let hl = null;
-    if (drag && !drag.bomb && drag.gx != null) hl = g.preview(drag.p, drag.gx, drag.gy);
+    if (drag && drag.gx != null) hl = g.preview(drag.p, drag.gx, drag.gy);
     const lit = new Set();
     if (hl) { for (const r of hl.rows) for (let q = 0; q < N; q++) lit.add(r * N + q); for (const q of hl.cols) for (let r = 0; r < N; r++) lit.add(r * N + q); }
     for (let k = 0; k < N * N; k++) {
@@ -752,18 +769,13 @@ function drawBoard(now, dt) {
       const sc = pop ? 1 + .18 * Math.sin(Math.min(1, (now - pop.t0) / 180) * Math.PI) : 1;
       block(ctx, lit.has(k) ? col(drag.p.v) : col(v), x, y, c, 1, sc);
     }
-    if (drag && !drag.bomb && drag.gx != null) {
+    if (drag && drag.gx != null) {
       for (const [cx, cy] of drag.p.s.c) { const k = (drag.gy + cy) * N + drag.gx + cx; block(ctx, col(drag.p.v), p + (drag.gx + cx) * c, p + (drag.gy + cy) * c, c, lit.has(k) ? 1 : .42); }
       if (lit.size) {
         ctx.globalAlpha = .18 + .1 * Math.sin(now / 90); ctx.fillStyle = '#fff';
         for (const k of lit) { rr(ctx, p + (k % N) * c + 1.5, p + ((k / N) | 0) * c + 1.5, c - 3, c - 3, c * .14); ctx.fill(); }
         ctx.globalAlpha = 1;
       }
-    }
-    if (drag && drag.bomb && drag.gx != null) {
-      const x = p + drag.gx * c, y = p + drag.gy * c, w = c * 3;
-      ctx.globalAlpha = .38 + .14 * Math.sin(now / 70); ctx.fillStyle = '#ff4f63'; rr(ctx, x + 1, y + 1, w - 2, w - 2, c * .22); ctx.fill();
-      ctx.globalAlpha = 1; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.5; ctx.setLineDash([7, 5]); rr(ctx, x + 1.5, y + 1.5, w - 3, w - 3, c * .22); ctx.stroke(); ctx.setLineDash([]);
     }
   }
   // clearing blocks shrink away
@@ -886,28 +898,17 @@ function renderHud(now, o) {
     hud.cbPrev = cb;
     const w = $('#boardWrap'); w.classList.toggle('c2', cb === 2); w.classList.toggle('c3', cb >= 3 && cb < 5); w.classList.toggle('c5', cb >= 5);
   }
-  // power meter and buttons
-  const pw = g ? g.power : 0, ch = Math.floor(pw / FULL), canUse = !!g && S.mode === 'play' && !g.dead && ch > 0;
-  const cool = S.mode === 'play' && now < S.atkAt ? Math.ceil((S.atkAt - now) / 1000) : 0;
-  const pk = pw + ':' + canUse + ':' + cool;
+  // power meter: when it fills, the lit power fires by itself
+  const pw = g ? Math.min(FULL, g.power) : START_POWER, nx = g ? g.nextKind() : 'freeze', bombs = g ? g.bombs : 0;
+  const waiting = !!g && S.mode === 'play' && g.power >= FULL;
+  const pk = pw + ':' + nx + ':' + bombs + ':' + waiting;
   if (hud.pk !== pk) {
     hud.pk = pk;
-    $('#pwFill').style.width = (ch >= 2 ? 100 : pw % FULL) + '%';
-    const pc = $('#pwCount'); pc.textContent = '⚡' + ch; pc.classList.toggle('on', ch > 0);
-    $('#bombBtn').classList.toggle('ready', canUse);
-    for (const [id, name] of [['#freezeBtn', 'Freeze'], ['#scrambleBtn', 'Scramble']]) {
-      const el = $(id); el.classList.toggle('ready', canUse && !cool); el.querySelector('small').textContent = cool ? cool + 's' : name;
-    }
-  }
-  if (g && S.mode === 'play') {
-    if (ch > S.lastCharges) {
-      sfx.ready();
-      // the first power of a round gets a big callout so nobody misses it
-      if (!S.toldPower) { S.toldPower = true; setTimeout(() => { if (S.mode === 'play') praise('Power ready!', 'Tap \u2744\ufe0f or \ud83c\udf00, or drag the \ud83d\udca3', 'gold'); }, 650); }
-      for (const id of ['#bombBtn', '#freezeBtn', '#scrambleBtn']) $(id).classList.add('glow');
-      clearTimeout(renderHud.glowT); renderHud.glowT = setTimeout(() => { for (const id of ['#bombBtn', '#freezeBtn', '#scrambleBtn']) $(id).classList.remove('glow'); }, 2600);
-    }
-    S.lastCharges = ch;
+    $('#pwFill').style.width = pw + '%';
+    const pc = $('#pwCount'); pc.textContent = pw + '%'; pc.classList.toggle('on', pw >= FULL);
+    for (const [id, k] of [['#pFreeze', 'freeze'], ['#pScramble', 'scramble'], ['#pBomb', 'bomb']]) { const el = $(id); el.classList.toggle('next', nx === k); el.classList.toggle('glow', nx === k && waiting); }
+    $('#pBomb').classList.toggle('has', bombs > 0);
+    const bc = $('#bombCount'); bc.hidden = !bombs; bc.textContent = bombs;
   }
   // the line under your score
   let hint = '', cls = '';
@@ -917,8 +918,7 @@ function renderHud(now, o) {
   else if (g.dead) hint = 'You ran out of room.';
   else if (S.hintNote && now < S.hintNote.until) { hint = S.hintNote.t; cls = 'warn'; }
   else if (g.frozen(now)) { hint = 'Frozen! Your pieces thaw in ' + Math.ceil((g.ice - now) / 1000) + 's'; cls = 'ice'; }
-  else if (!g.pieceFits()) { hint = 'No room! Drag the 💣 onto your board.'; cls = 'warn'; }
-  else if (ch > 0 && !S.usedAny) { hint = 'Power ready! Tap ❄️ or 🌀, or drag 💣.'; cls = 'warn'; }
+  else if (g.moves < 4 && !g.fills) { hint = 'Clears fill your meter. When it\u2019s full, a power fires by itself!'; }
   else if (cb > 0) hint = 'Combo x' + cb + ': clear again within ' + cl + (cl === 1 ? ' move!' : ' moves');
   else if (g.moves === 0) hint = 'Drag a piece onto the board.';
   else hint = 'Clear lines to score and charge your powers.';
@@ -933,8 +933,9 @@ function renderHud(now, o) {
     else if (S.oppNote && now < S.oppNote.until) { oi = S.oppNote.t; ocls = 'hot'; }
     else if (o.fz) { oi = '❄ Frozen'; ocls = 'ice'; }
     else {
-      const parts = []; if (o.cb > 1) parts.push('Combo x' + o.cb); if (o.pc > 0) parts.push(o.cb > 1 ? '⚡ Ready' : '⚡ Power ready');
-      oi = parts.join(' · '); if (o.pc > 0) ocls = 'hot';
+      const coming = o.pm >= 75 && o.nx !== 'bomb' ? (o.nx === 'scramble' ? '\ud83c\udf00 Scramble' : '\u2744\ufe0f Freeze') : '';
+      const parts = []; if (coming) parts.push('\u26a0 ' + coming + ' coming!'); if (o.cb > 1) parts.push('Combo x' + o.cb); if (o.bm > 0) parts.push('\ud83d\udca3' + o.bm);
+      oi = parts.join(' · '); if (coming) ocls = 'hot';
     }
     if (o.cb > S.lastOppCb && o.cb > 1) flash($('#oppCard'), 'hit');
     S.lastOppCb = o.cb;
@@ -954,7 +955,7 @@ function renderHud(now, o) {
 function oppView(now) {
   if (S.vsCpu) {
     const c = S.cpu; if (!c) return null;
-    return { id: 'cpu', name: 'Computer (' + CPU[S.cpuLevel].label + ')', b: c.encode(), sc: c.score, cb: c.combo, pc: c.charges(), fz: c.frozen(now), w: S.oppWinsCpu, alive: !c.dead, here: true, inM: true, st: c.dead ? 'dead' : 'play', pal: SKINS[0].c, meta: '' };
+    return { id: 'cpu', name: 'Computer (' + CPU[S.cpuLevel].label + ')', b: c.encode(), sc: c.score, cb: c.combo, pm: Math.min(FULL, c.power), nx: c.nextKind(), bm: c.bombs, fz: c.frozen(now), w: S.oppWinsCpu, alive: !c.dead, here: true, inM: true, st: c.dead ? 'dead' : 'play', pal: SKINS[0].c, meta: '' };
   }
   if (!S.opp) return null;
   const peer = NET.peers.find(p => p.peer === S.opp);
@@ -965,7 +966,7 @@ function oppView(now) {
   const alive = here && (inM ? (pr.st === 'play' || pr.st === 'fin') : now - S.roundStartedAt < 8000);
   return {
     id: S.opp, name: cleanName(pr.nm) || 'Player', b: inM && typeof pr.b === 'string' ? pr.b : '', sc: inM ? num(pr.sc) : 0,
-    cb: inM ? num(pr.cb) : 0, pc: inM ? num(pr.pc) : 0, fz: inM && !!pr.fz, w: num(pr.w), alive, here, inM, st: String(pr.st || ''),
+    cb: inM ? num(pr.cb) : 0, pm: inM ? num(pr.pm) : 0, nx: inM && typeof pr.nx === 'string' ? pr.nx : '', bm: inM ? num(pr.bm) : 0, fz: inM && !!pr.fz, w: num(pr.w), alive, here, inM, st: String(pr.st || ''),
     de: pr.de == null ? null : Number(pr.de), pal: skinOf(pr.sk).c, meta: metaOf(pr)
   };
 }
@@ -992,6 +993,7 @@ function afterPlace(info) {
     praise(word, info.combo > 1 ? 'Combo x' + info.combo + '!' : '', info.combo >= 5 ? 'pink' : info.n >= 3 || info.combo >= 3 ? 'gold' : '');
   } else if (info.broke) { sfx.broke(); praise('', 'Combo lost', 'red'); }
   floatPts('+' + fmtN(info.gain), p + (info.x + info.p.s.w / 2) * c, p + (info.y + info.p.s.h / 2) * c);
+  if (info.saves && info.saves.length) setTimeout(() => info.saves.forEach(sv => afterBomb(sv)), 350);
 }
 function afterBomb(info) {
   const c = L.cell, p = L.pad, now = Date.now();
@@ -1003,28 +1005,28 @@ function afterBomb(info) {
   }
   burst(p + (info.x + 1.5) * c, p + (info.y + 1.5) * c, '#ffd234', 26, .42, 900);
   burst(p + (info.x + 1.5) * c, p + (info.y + 1.5) * c, '#ff4f63', 18, .34, 800);
-  praise('BOOM!', info.cleared.length ? 'Blew up ' + info.cleared.length + ' blocks' : '', 'red');
-  S.usedAny = true;
+  praise('BOOM!', 'Your bomb saved you!', 'red');
   sendPower('bomb');
 }
-// fire a power at the other player
-function usePower(kind) {
-  const g = S.game, now = Date.now();
-  if (!g || S.mode !== 'play' || g.dead) return;
-  if (g.power < FULL) { sfx.bad(); hintNote('Clear lines to charge your powers.'); return; }
-  if (now < S.atkAt) { sfx.bad(); hintNote('Freeze and Scramble recharge in ' + Math.ceil((S.atkAt - now) / 1000) + 's. Bomb is ready.'); return; }
-  const o = oppView(now);
-  if (!o || !o.alive) { sfx.bad(); return; }
-  if (!g.spend()) return;
-  S.usedAny = true; S.atkAt = now + ATTACK_GAP;
+// your meter filled: the next power goes off on its own
+function myPowerFired(kind) {
+  const now = Date.now();
+  if (kind === 'bomb') {
+    sfx.ready(); flash($('#pBomb'), 'bump');
+    praise('', '\ud83d\udca3 Bomb saved! It goes off by itself if you get stuck', 'gold');
+    return;
+  }
   sfx.fire(); buzz(15);
-  flyIcon(kind === 'freeze' ? '❄️' : '🌀', $(kind === 'freeze' ? '#freezeBtn' : '#scrambleBtn'), $('#oppCard'));
+  const src = $(kind === 'freeze' ? '#pFreeze' : '#pScramble');
+  flash(src, 'bump');
+  flyIcon(kind === 'freeze' ? '\u2744\ufe0f' : '\ud83c\udf00', src, $('#oppCard'));
   setTimeout(() => flash($('#oppCard'), 'hit'), 480);
+  praise('', kind === 'freeze' ? '\u2744\ufe0f Freeze sent!' : '\ud83c\udf00 Scramble sent!', kind === 'freeze' ? 'ice' : 'pink');
   if (S.vsCpu) {
     const c = S.cpu;
-    setTimeout(() => { if (!c || c.dead || S.cpu !== c) return; if (kind === 'freeze') c.freeze(Date.now()); else { c.scramble(); if (!c.canMove()) c.die('stuck'); } }, 450);
+    setTimeout(() => { if (!c || c.dead || S.cpu !== c || S.mode !== 'play') return; if (kind === 'freeze') c.freeze(Date.now()); else { c.scramble(); c.rescue(); } }, 450);
   } else sendPower(kind);
-  oppNote(kind === 'freeze' ? '❄ You froze them!' : '🌀 You scrambled them!');
+  oppNote(kind === 'freeze' ? '\u2744\ufe0f You froze them!' : '\ud83c\udf00 You scrambled them!');
 }
 function sendPower(kind) {
   if (S.vsCpu || !S.mid) return;
@@ -1035,13 +1037,13 @@ function sendPower(kind) {
 // the other player hit you with a power
 function hitMe(kind, from) {
   const g = S.game; if (!g || g.dead || S.mode !== 'play') return;
-  if (drag && !drag.bomb) cancelDrag();
+  if (drag) cancelDrag();
   flyIcon(kind === 'freeze' ? '❄️' : '🌀', $('#oppCard'), $('#tray'));
   setTimeout(() => {
     if (S.game !== g || g.dead || S.mode !== 'play') return;
-    if (drag && !drag.bomb) cancelDrag();
+    if (drag) cancelDrag();
     if (kind === 'freeze') { g.freeze(Date.now()); sfx.ice(); praise('Frozen!', from + ' froze your pieces', 'ice'); buzz([30, 40, 30]); }
-    else { g.scramble(); sfx.scramble(); praise('Scrambled!', from + ' swapped your pieces', 'pink'); flash($('#tray'), 'shake'); buzz(70); if (!g.canMove()) g.die('stuck'); }
+    else { g.scramble(); sfx.scramble(); praise('Scrambled!', from + ' swapped your pieces', 'pink'); flash($('#tray'), 'shake'); buzz(70); const saves = g.rescue(); saves.forEach(sv => afterBomb(sv)); }
     kick(6);
   }, REDUCED ? 0 : 450);
 }
@@ -1053,8 +1055,7 @@ let countShown = null;
 function beginCountdown() {
   resetFx();
   S.mode = 'countdown'; S.countEnd = Date.now() + 3000; S.roundStartedAt = Date.now();
-  S.myDe = null; S.myReason = ''; S.lastCharges = 0; S.oppNote = null; S.hintNote = null; S.lastOppCb = 0;
-  S.atkAt = 0; S.cpuAtkAt = Date.now() + 15000; S.toldPower = false;
+  S.myDe = null; S.myReason = ''; S.oppNote = null; S.hintNote = null; S.lastOppCb = 0;
   countShown = null; $('#count').textContent = '3';
   hideScreens(); $('#count').hidden = false; hud = {};
   requestAnimationFrame(layout); keepAwake();
@@ -1065,6 +1066,7 @@ function startCpu() {
   S.vsCpu = true; S.mid = null; S.go = null; S.opp = null; S.netSt = 'lobby';
   const seed = Math.floor(Math.random() * 2147483647);
   S.game = makeGame(seed, true); S.cpu = makeGame(seed, false); S.cpuT = 2200;
+  S.cpu.chargeMul = CPU[S.cpuLevel].charge;
   beginCountdown();
 }
 function startOnline(go) {
@@ -1193,23 +1195,9 @@ function cpuTick(now, dt) {
   if (S.cpuT > 0) return;
   if (c.frozen(now)) { S.cpuT = 250; return; }
   S.cpuT = lvl.ms * (.7 + Math.random() * .6);
-  if (cpuPower(now)) return;
   const m = cpuMove(c);
-  if (m) c.place(m.i, m.x, m.y, now);
-  else if (c.power >= FULL) { const d = densest3(c.b); c.bomb(d.x, d.y); oppNote('💣 They used a bomb'); }
-  else c.die('stuck');
-}
-function cpuPower(now) {
-  const c = S.cpu, lvl = CPU[S.cpuLevel];
-  if (c.power < FULL || c.dead) return false;
-  const stuck = !c.pieceFits(), full = filled(c.b) / (N * N);
-  if (stuck || (lvl.smart && full > .58)) { const d = densest3(c.b); if (c.bomb(d.x, d.y)) { oppNote('💣 They used a bomb'); return true; } }
-  if (!stuck && S.game && !S.game.dead && now >= S.cpuAtkAt && Math.random() < lvl.aggro) {
-    const mine = filled(S.game.b) / (N * N);
-    const kind = lvl.smart ? (mine > .4 ? 'scramble' : 'freeze') : (Math.random() < .5 ? 'freeze' : 'scramble');
-    if (c.spend()) { S.cpuAtkAt = now + lvl.gap; hitMe(kind, 'The computer'); return true; }
-  }
-  return false;
+  if (m) { const info = c.place(m.i, m.x, m.y, now); if (info && info.saves.length) oppNote('\ud83d\udca3 Their bomb saved them'); }
+  else if (c.rescue().length) oppNote('\ud83d\udca3 Their bomb saved them');
 }
 
 /* ================= online ================= */
@@ -1265,7 +1253,7 @@ function pollNet(now) {
     if (!Array.isArray(e)) continue;
     const sq = num(e[0]); if (sq <= S.pwIn) continue;
     S.pwIn = sq;
-    if (e[1] === 'bomb') oppNote('💣 ' + from + ' used a bomb');
+    if (e[1] === 'bomb') oppNote('\ud83d\udca3 ' + from + '\u2019s bomb saved them');
     else if ((e[1] === 'freeze' || e[1] === 'scramble') && pr.tg === pkey(NET.me)) hitMe(e[1], from);
   }
 }
@@ -1275,7 +1263,7 @@ function presenceState() {
   const g = S.game, inR = !!(S.mid && g && !S.vsCpu), now = Date.now();
   return {
     v: 5, nm: S.name, st: S.netSt, mid: S.vsCpu ? null : S.mid, go: S.go,
-    b: inR ? g.encode() : null, sc: inR ? g.score : 0, cb: inR ? g.combo : 0, pc: inR ? g.charges() : 0, fz: inR && g.frozen(now) ? 1 : 0,
+    b: inR ? g.encode() : null, sc: inR ? g.score : 0, cb: inR ? g.combo : 0, pm: inR ? Math.min(FULL, g.power) : 0, nx: inR ? g.nextKind() : null, bm: inR ? g.bombs : 0, fz: inR && g.frozen(now) ? 1 : 0,
     pw: inR ? S.pwOut.slice() : [], tg: inR && S.opp ? pkey(S.opp) : null,
     w: S.wins, de: S.myDe, lv: P.lv, rk: P.tr, sk: P.skin, vis: !document.hidden, hb
   };
@@ -1417,23 +1405,10 @@ function startDrag(i, e) {
   const p = g.tray[i]; if (!p) return false;
   if (g.frozen(Date.now())) { sfx.bad(); hintNote('Frozen! Wait for your pieces to thaw.', 1200); return false; }
   audioInit(); sfx.pick();
-  drag = { i, p, id: e.pointerId, gx: null, gy: null, bomb: false };
+  drag = { i, p, id: e.pointerId, gx: null, gy: null };
   const c = L.cell;
   ctxD = setupCanvas(cvD, p.s.w * c, p.s.h * c);
   for (const [cx, cy] of p.s.c) block(ctxD, col(p.v), cx * c, cy * c, c);
-  cvD.hidden = false;
-  moveDrag(e);
-  return true;
-}
-function startBombDrag(e) {
-  const g = S.game; if (!g || S.mode !== 'play' || g.dead || drag) return false;
-  if (g.power < FULL) { sfx.bad(); hintNote('Clear lines to charge your powers.'); return false; }
-  audioInit(); sfx.pick();
-  drag = { i: -1, p: { s: BOMB, v: 1 }, id: e.pointerId, gx: null, gy: null, bomb: true };
-  const c = L.cell;
-  ctxD = setupCanvas(cvD, 3 * c, 3 * c);
-  for (let y = 0; y < 3; y++) for (let x = 0; x < 3; x++) { ctxD.fillStyle = 'rgba(255,79,99,.5)'; rr(ctxD, x * c + 2, y * c + 2, c - 4, c - 4, c * .2); ctxD.fill(); }
-  ctxD.font = Math.round(c * 1.5) + 'px sans-serif'; ctxD.textAlign = 'center'; ctxD.textBaseline = 'middle'; ctxD.fillText('💣', c * 1.5, c * 1.58);
   cvD.hidden = false;
   moveDrag(e);
   return true;
@@ -1445,24 +1420,13 @@ function moveDrag(e) {
   const left = e.clientX - pw / 2, top = e.clientY - ph - Math.max(36, c * 1.1);
   cvD.style.transform = 'translate(' + left.toFixed(1) + 'px,' + top.toFixed(1) + 'px)';
   const r = cvB.getBoundingClientRect();
-  let gx = Math.round((left - r.left - L.pad) / c), gy = Math.round((top - r.top - L.pad) / c);
-  if (drag.bomb) {
-    // the bomb snaps onto the board as long as its middle is over the board
-    if (gx + 1 >= 0 && gx + 1 < N && gy + 1 >= 0 && gy + 1 < N) { drag.gx = Math.max(0, Math.min(N - 3, gx)); drag.gy = Math.max(0, Math.min(N - 3, gy)); }
-    else { drag.gx = null; drag.gy = null; }
-    return;
-  }
+  const gx = Math.round((left - r.left - L.pad) / c), gy = Math.round((top - r.top - L.pad) / c);
   if (S.game && S.game.fits(drag.p, gx, gy)) { drag.gx = gx; drag.gy = gy; } else { drag.gx = null; drag.gy = null; }
 }
 function endDrag() {
   if (!drag) return;
   const d = drag; drag = null; cvD.hidden = true;
   const g = S.game, ok = d.gx != null && g && S.mode === 'play';
-  if (d.bomb) {
-    const info = ok ? g.bomb(d.gx, d.gy) : null;
-    if (info) afterBomb(info); else { sfx.bad(); if (S.mode === 'play') hintNote('Drag the 💣 onto your board to use it.'); }
-    return;
-  }
   const info = ok && g.tray[d.i] === d.p ? g.place(d.i, d.gx, d.gy, Date.now()) : null;
   if (info) afterPlace(info); else sfx.bad();
 }
@@ -1479,16 +1443,6 @@ trayCv.forEach((c, i) => {
   c.addEventListener('touchstart', e => { e.preventDefault(); }, { passive: false });
   c.addEventListener('contextmenu', e => e.preventDefault());
 });
-const bombBtn = $('#bombBtn');
-bombBtn.addEventListener('pointerdown', e => { e.preventDefault(); if (startBombDrag(e)) { try { bombBtn.setPointerCapture(e.pointerId); } catch (x) {} } });
-bombBtn.addEventListener('touchstart', e => { e.preventDefault(); }, { passive: false });
-bombBtn.addEventListener('contextmenu', e => e.preventDefault());
-// keyboard users can still drop the bomb: it goes on the most crowded spot
-bombBtn.addEventListener('keydown', e => {
-  if ((e.key === 'Enter' || e.key === ' ') && S.game && S.mode === 'play') { e.preventDefault(); const d = densest3(S.game.b), info = S.game.bomb(d.x, d.y); if (info) afterBomb(info); else sfx.bad(); }
-});
-$('#freezeBtn').addEventListener('click', () => usePower('freeze'));
-$('#scrambleBtn').addEventListener('click', () => usePower('scramble'));
 
 /* ================= buttons ================= */
 document.addEventListener('pointerdown', audioInit, true);
@@ -1576,6 +1530,9 @@ function frame(t) {
     pollNet(now);
     const g = S.game;
     if (S.vsCpu && S.cpu && !S.cpu.dead && S.mode === 'play') cpuTick(now, dt);
+    // full meters fire on their own
+    if (g && !g.dead && S.mode === 'play') { const k = g.autoFire(now); if (k) myPowerFired(k); }
+    if (S.vsCpu && S.cpu && !S.cpu.dead && S.mode === 'play') { const k = S.cpu.autoFire(now); if (k === 'bomb') oppNote('\ud83d\udca3 They saved a bomb'); else if (k) hitMe(k, 'The computer'); }
     const left = S.roundEnd - now;
     if (left > 0 && left <= 5000) { const sec = Math.ceil(left / 1000); if (sec !== S.lastTick) { S.lastTick = sec; sfx.tick(); } }
     if (S.mode === 'play' && g && !g.dead) {
@@ -1611,7 +1568,7 @@ document.addEventListener('visibilitychange', () => {
   const wentAt = hiddenAt, away = Date.now() - wentAt; hiddenAt = 0;
   if (S.vsCpu) {
     // the computer waits for you
-    if (S.mode === 'play') { S.playStart += away; S.roundEnd += away; S.atkAt += away; S.cpuAtkAt += away; for (const g of [S.game, S.cpu]) if (g && g.ice > wentAt) g.ice += away; }
+    if (S.mode === 'play') { S.playStart += away; S.roundEnd += away; for (const g of [S.game, S.cpu]) if (g) { if (g.ice > wentAt) g.ice += away; g.lastAtk += away; } }
     else if (S.mode === 'countdown') S.countEnd += away;
     return;
   }
